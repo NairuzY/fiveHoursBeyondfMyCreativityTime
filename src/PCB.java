@@ -55,9 +55,4 @@ public class PCB {
         this.max=max;
     }
 
-
-
-
-
-
 }
