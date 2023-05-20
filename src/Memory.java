@@ -1,4 +1,5 @@
 public class Memory {
+    
     private Object[] stack;
 
     public Memory(){

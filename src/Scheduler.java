@@ -4,7 +4,7 @@ public class Scheduler {
 
     Queue<Process> readyQueue = new LinkedList<>();
     Queue<Process> blockedQueue = new LinkedList<>();
-    private int timeSlice = Integer.parseInt(getVal("slice"));;
+    private int timeSlice = Integer.parseInt(getVal("slice"));
     public void choose(){
 
     }

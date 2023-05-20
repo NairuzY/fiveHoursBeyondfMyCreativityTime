@@ -3,6 +3,10 @@ import java.io.IOException;
 import java.util.*;
 
 public class Parser {
+    
+    public Parser(){
+    
+    }
 
     public void execute() throws IOException {
         File myObj = new File("instructions.txt");
@@ -40,7 +44,7 @@ public class Parser {
     }
 
     public void printFromTo(String x, String y){
-
+    
     }
 
     public void semWait(String x){

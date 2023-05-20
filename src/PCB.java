@@ -1,11 +1,18 @@
 public class PCB {
+    
     private int PID=0;
     private ProcessState state;
-
     private int PC;
-
     private int min;
     private int max;
+    
+    public PCB(int id, int min, int max){
+        PID=id;
+        state=ProcessState.NEW;
+        PC=min;
+        this.min=min;
+        this.max=max;
+    }
 
     public int getPID() {
         return PID;
@@ -46,13 +53,6 @@ public class PCB {
     public void setMax(int max) {
         this.max = max;
     }
-
-    public PCB(int id, int min, int max){
-        PID=id;
-        state=ProcessState.NEW;
-        PC=min;
-        this.min=min;
-        this.max=max;
-    }
+    
 
 }
