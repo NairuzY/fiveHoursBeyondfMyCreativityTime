@@ -5,8 +5,8 @@ import java.util.Properties;
 public class Process {
     private PCB info;
     public static int counter=1;
-    private int timeSlice = Integer.parseInt(getVal("slice"));
     private String[] instructions;
+    private int remainingTime;
 
     public Process(int min,int max){
         info=new PCB(counter,min,max);
