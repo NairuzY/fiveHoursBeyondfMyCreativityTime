@@ -1,5 +1,7 @@
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.util.*;
 
 public class Parser {
@@ -16,7 +18,7 @@ public class Parser {
             String[] instruction = line.split(" ");
             switch(instruction[0]){
                 case "print": print(instruction[1]); break;
-                case "assign": assign(instruction[1], instruction[2]); break;
+                case "assign": assign(instruction); break;
                 case "writeFile": writeFile(instruction[1], instruction[2]);
                 case "readFile" : readFile(instruction[1]); break;
                 case "printFromTo" : printFromTo(instruction[1], instruction[2]); break;
@@ -31,8 +33,12 @@ public class Parser {
         System.out.println(x);
     }
 
-    public void assign(String x, String y){
-
+    public void assign(String[] arr) throws IOException {
+        String var;
+        if(arr[2].equals("input")){
+            BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+            var = br.readLine();
+        }
     }
 
     public void writeFile(String x, String y){
