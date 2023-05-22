@@ -74,5 +74,13 @@ public class Process {
 //    public void setFinished(boolean finished) {
 //        this.finished = finished;
 //    }
+
+    public int getRemainingTime() {
+        return remainingTime;
+    }
+
+    public void setRemainingTime(int remainingTime) {
+        this.remainingTime = remainingTime;
+    }
 }
 

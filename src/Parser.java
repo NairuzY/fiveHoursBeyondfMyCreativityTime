@@ -5,7 +5,7 @@ import java.util.*;
 public class Parser {
     
     public Parser(){
-    
+
     }
 
     public void execute() throws IOException {
