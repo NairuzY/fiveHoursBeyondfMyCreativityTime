@@ -1,5 +1,4 @@
-import java.io.File;
-import java.io.FileInputStream;
+import java.io.*;
 import java.util.*;
 
 public class Scheduler {
@@ -61,21 +60,37 @@ public class Scheduler {
 //        }
 //    }
 
-    public void toMemory(String fileName){
+    public void toMemory(String fileName,int processId) throws IOException {
+        int min = memory.allocateMemory();
+        int max = min+19;
+        PCB pcb=new PCB(processId,min,max);
+        int index=min;
+        memory.setStack(""+processId,index++);
+        memory.setStack(""+"READY",index++);
+        memory.setStack("",index++);
+        memory.setStack(""+min,index++);
+        memory.setStack(""+max,index++);
+        index+=3;
+        BufferedReader br = new BufferedReader(new FileReader(fileName));
+        String line="";
+        while((line=br.readLine())!=null)
+            memory.setStack(line,index++);
+    }
 
-//will create a new pcb then a new process
+    public void cycle() throws IOException {
+        for( ; currentTime<100 ;currentTime++){ //to be handled
+            if(programs.get(currentTime)!=null){
+                toMemory("Program_"+programs.get(currentTime)+".txt",programs.get(currentTime));
 
-
+            }
+        }
+    }
+    public void interpreter(int pc){
+        String instruction=
     }
 
     public void runScheduler() {
-        // Print queues before scheduling event
-        printQueues();
-
         while (!readyQueue.isEmpty()) {
-          if(programs.get(currentTime)!=null){
-              toMemory("programs_"+programs.get(currentTime)+".txt");
-          }
             Process currentProcess = readyQueue.poll();
 
             // Execute instructions for the current process within the time slice

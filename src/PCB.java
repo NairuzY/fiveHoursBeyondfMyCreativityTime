@@ -9,7 +9,7 @@ public class PCB {
     public PCB(int id, int min, int max){
         PID=id;
         state=ProcessState.READY;
-        PC=min;
+        PC=0;
         this.min=min;
         this.max=max;
     }
