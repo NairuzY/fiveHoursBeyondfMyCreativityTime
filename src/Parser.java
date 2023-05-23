@@ -10,8 +10,8 @@ public class Parser {
             case "assign": assign(instruction); break;
             case "writeFile": writeFile(instruction[1], instruction[2], address);
             case "readFile" : readFile(instruction[1]); break;
-            case "printFromTo" : printFromTo(instruction[1], instruction[2]); break;
-            case "semWait": semWait(instruction[1]); break;
+            case "printFromTo" : printFromTo(instruction[1], instruction[2], address); break;
+            case "semWait": semWait(instruction[1],address); break;
             case "semSignal" : semSignal(instruction[1]); break;
             default:
         }
@@ -57,20 +57,82 @@ public class Parser {
 
     }
 
-    public void printFromTo(String x, String y){
-        int from = Integer.parseInt(x);
-        int to = Integer.parseInt(y);
+    public void printFromTo(String x, String y, int address){
+        Integer from=null;//is it okay to be an Integer not int?
+        Integer to = null;
+
+        for(int i=address+5; i<address+8; i++){
+            if(Memory.stack[i]!=null){
+                String[] arr = Memory.stack[i].split("=");
+                if(arr[0].equals(x))
+                    from = Integer.parseInt(arr[1]);
+                else if(arr[0].equals(y))
+                    to = Integer.parseInt(arr[1]);
+            }
+        }
+        if(from==null || to==null){
+            System.out.println("input is invalid");
+            return;
+        }
         for(int i=from+1; i<to; i++){
             System.out.println(i);
         }
+
     }
 
-    public void semWait(String x){
+    public void semWait(String x,int address){
+        if(x.equals("userInput")){
+            if(Scheduler.semInput==0) {
+                Memory.stack[address + 1] = "BLOCKED";
+                Scheduler.blockedQueue.put(Memory.stack[address],Scheduler.runningProcess);
+                Scheduler.blockedOnTakingInput.add(Memory.stack[address]);
+            }
+            else
+                Scheduler.semInput=0;
+        }else if(x.equals("userOutput")){
+            if(Scheduler.semScreen==0) {
+                Memory.stack[address + 1] = "BLOCKED";
+                Scheduler.blockedQueue.put(Memory.stack[address],Scheduler.runningProcess);
+                Scheduler.blockedOnScreen.add(Memory.stack[address]);
+            }
+            else
+                Scheduler.semScreen=0;
 
+        }else{
+            if(Scheduler.semFile==0) {
+                Memory.stack[address + 1] = "BLOCKED";
+                Scheduler.blockedQueue.put(Memory.stack[address],Scheduler.runningProcess);
+                Scheduler.blockedOnFile.add(Memory.stack[address]);
+            }
+            else
+                Scheduler.semFile=0;
+
+        }
     }
 
     public void semSignal(String x){
-
+        if(x.equals("userInput")){
+            Scheduler.semInput=1;
+            while(!Scheduler.blockedOnTakingInput.isEmpty()){
+                String processID=Scheduler.blockedOnTakingInput.poll();
+                Scheduler.readyQueue.put(processID, Scheduler.blockedQueue.get(processID));
+                Scheduler.blockedQueue.remove(processID);
+            }
+        }else if(x.equals("userOutput")) {
+            Scheduler.semScreen=1;
+            while(!Scheduler.blockedOnScreen.isEmpty()){
+                String processID=Scheduler.blockedOnScreen.poll();
+                Scheduler.readyQueue.put(processID, Scheduler.blockedQueue.get(processID));
+                Scheduler.blockedQueue.remove(processID);
+            }
+        } else{
+            Scheduler.semFile=1;
+            while(!Scheduler.blockedOnFile.isEmpty()){
+                String processID=Scheduler.blockedOnFile.poll();
+                Scheduler.readyQueue.put(processID, Scheduler.blockedQueue.get(processID));
+                Scheduler.blockedQueue.remove(processID);
+            }
+        }
     }
 
 }

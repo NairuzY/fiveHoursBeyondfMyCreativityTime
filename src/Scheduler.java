@@ -3,16 +3,20 @@ import java.util.*;
 
 public class Scheduler {
 
-    Queue<Process> readyQueue = new LinkedList<>();
-    Queue<Process> blockedQueue = new LinkedList<>();
-    Queue<Process> blockedOnScreen = new LinkedList<>();
-    Queue<Process> blockedOnTakingInput = new LinkedList<>();
-    Queue<Process> blockedOnFile = new LinkedList<>();
+    static Hashtable<String,Process> readyQueue = new Hashtable<>();
+    static Process runningProcess = null;
+    static Hashtable<String,Process> blockedQueue = new Hashtable<>();
+    static Queue<String> blockedOnScreen = new LinkedList<>();
+    static Queue<String> blockedOnTakingInput = new LinkedList<>();
+    static Queue<String> blockedOnFile = new LinkedList<>();
     Hashtable<Integer,Integer> programs= new Hashtable<>();
     Memory memory = new Memory();
     int processesCount=0;
 
     int currentTime = 0;
+    static int semFile = 1;
+    static int semScreen = 1;
+    static int semInput = 1;
     private int timeSlice = Integer.parseInt(getVal("slice"));
     public void choose(){
 
