@@ -3,7 +3,7 @@ import java.util.*;
 
 public class Scheduler {
 
-    static Hashtable<String,Process> readyQueue = new Hashtable<>();
+    static Queue<Process> readyQueue = new LinkedList<>();
     static Process runningProcess = null;
     static Hashtable<String,Process> blockedQueue = new Hashtable<>();
     static Queue<String> blockedOnScreen = new LinkedList<>();
@@ -12,7 +12,6 @@ public class Scheduler {
     Hashtable<Integer,Integer> programs= new Hashtable<>();
     Memory memory = new Memory();
     int processesCount=0;
-
     int currentTime = 0;
     static int semFile = 1;
     static int semScreen = 1;
@@ -63,22 +62,30 @@ public class Scheduler {
 //            }
 //        }
 //    }
-
-    public void toMemory(String fileName,int processId) throws IOException {
+    public void storeInMemory(String[] values, Process process){
         int min = memory.allocateMemory();
+        process.setAddress(min);
         int max = min+19;
-        PCB pcb=new PCB(processId,min,max);
-        int index=min;
-        memory.setStack(""+processId,index++);
-        memory.setStack(""+"READY",index++);
-        memory.setStack("",index++);
-        memory.setStack(""+min,index++);
-        memory.setStack(""+max,index++);
-        index+=3;
+        System.arraycopy(values, 0, Memory.stack, min, values.length);
+        memory.setStack(""+min,min+3);
+        memory.setStack(""+max,min+4);
+        process.setInMemory(true);
+    }
+    public void toMemory(String fileName,int processId) throws IOException {
+        Process process = new Process(processId+"");
+        String[] values = new String[20];
+        values[0] = ""+processId;
+        values[1] = "READY";
+        values[2] = "0";
+        for(int i=3; i<8; i++){
+            values[i] = null;
+        }
         BufferedReader br = new BufferedReader(new FileReader(fileName));
-        String line="";
-        while((line=br.readLine())!=null)
-            memory.setStack(line,index++);
+        for(int i=8; i<20; i++){
+            String line=br.readLine();
+            values[i] = line;
+        }
+        storeInMemory(values, process);
     }
 
     public void cycle() throws IOException {
@@ -89,33 +96,45 @@ public class Scheduler {
             }
         }
     }
-    public void interpreter(int pc){
-        String instruction=
-    }
+   public void runScheduler() throws IOException {
+        if(runningProcess == null)
+            if(!readyQueue.isEmpty()) {
+                runningProcess = readyQueue.poll();
 
-    public void runScheduler() {
-        while (!readyQueue.isEmpty()) {
-            Process currentProcess = readyQueue.poll();
-
-            // Execute instructions for the current process within the time slice
-            for (int i = 0; i < timeSlice; i++) {
-                if (currentProcess.hasMoreInstructions()) {
-                    String instruction = currentProcess.getNextInstruction();
-                    executeInstruction(currentProcess, instruction);
-                } else {
-                    break;
-                }
             }
+        timeSlice --;
+        int iAddress = runningProcess.getAddress() + 5 + Integer.parseInt(Memory.stack[runningProcess.getAddress() + 2]);
+        Parser.execute(Memory.stack[iAddress], runningProcess.getAddress());
+        if(!Parser.dontMove){
+            iAddress++;
+            int max = Integer.parseInt(Memory.stack[runningProcess.getAddress() + 4]);
+            if(Memory.stack[iAddress] == null || iAddress > max) {
+                terminate();
+                return;
+            }
+            Memory.stack[runningProcess.getAddress() + 2] = iAddress - runningProcess.getAddress() - 5 +"";
+            if(timeSlice == 0){
+                readyQueue.add(runningProcess);
+                runningProcess= null;
+            }
+        }
 
             // Check if the process is blocked or finished
-            if (currentProcess.getInfo().getState() == ProcessState.BLOCKED) {
-                blockedQueue.add(currentProcess);
-            } else if (currentProcess.getInfo().getState() != ProcessState.TERMINATED) {
-                readyQueue.add(currentProcess);
-            }
+//            if (currentProcess.getInfo().getState() == ProcessState.BLOCKED) {
+//                blockedQueue.add(currentProcess);
+//            } else if (currentProcess.getInfo().getState() != ProcessState.TERMINATED) {
+//                readyQueue.add(currentProcess);
+//            }
 
             // Print queues after scheduling event
             printQueues();
+    }
+
+
+    private void setRunning(Process process){
+        timeSlice = Integer.parseInt(getVal("slice"));
+        if(Disk.getDisk().get(process.id)!=null){
+
         }
     }
     private void printQueues() {
@@ -130,7 +149,7 @@ public class Scheduler {
     private void executeInstruction(Process process, String instruction) {
         // Execute the instruction based on the process
         // This is just a placeholder and you need to replace it with your own logic
-        System.out.println("Executing instruction: " + instruction + " for process: " + process.getId());
+        System.out.println("Executing instruction: " + instruction + " for process: " + process.id);
     }
 
 

@@ -3,11 +3,13 @@ import java.util.*;
 
 public class Parser {
 
-    public void execute(String instructionLine, int address) throws IOException {
+    static String temp = null;
+    static boolean dontMove = false;
+    public static void execute(String instructionLine, int address) throws IOException {
         String[] instruction = instructionLine.split(" ");
         switch(instruction[0]){
             case "print": print(instruction[1]); break;
-            case "assign": assign(instruction); break;
+            case "assign": assign(instruction, address); break;
             case "writeFile": writeFile(instruction[1], instruction[2], address);
             case "readFile" : readFile(instruction[1]); break;
             case "printFromTo" : printFromTo(instruction[1], instruction[2], address); break;
@@ -17,21 +19,39 @@ public class Parser {
         }
     }
 
-    public void print(String x){
+    public static void print(String x){
         System.out.println(x);
     }
 
-    public void assign(String[] arr) throws IOException {
+    public static void assign(String[] arr, int address) throws IOException {
         String var;
         if(arr[2].equals("input")){
+            System.out.println("Please enter a value");
             BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
             var = br.readLine();
-        } else{
-            //we'll have to use instruction[3] to find the variable to read from memory
+        } else if(arr[2].equals("readFile")) {
+            if (temp == null) {
+                readFile(arr[3]);
+                dontMove = true;
+                return;
+            } else {
+                var = temp;
+                temp = null;
+            }
+        } else
+            var = arr[2];
+        var = arr[0]+"="+var;
+        for(int i=address+5; i<address+8; i++){
+            if(Memory.stack[i] == null){
+                Memory.stack[i] = var;
+                return;
+            }
         }
+        //we'll have to use instruction[3] to find the variable to read from memory
+
     }
 
-    public void writeFile(String x, String y, int address) throws IOException {
+    public static void writeFile(String x, String y, int address) throws IOException {
         String xVal = null;
         String yVal = null;
         for(int i=address+5; i<address+8; i++){
@@ -53,11 +73,12 @@ public class Parser {
         w.close();
     }
 
-    public void readFile(String x){
-
+    public static void readFile(String x) throws IOException {
+        BufferedReader br = new BufferedReader(new FileReader("src/"+x));
+        temp = br.readLine();
     }
 
-    public void printFromTo(String x, String y, int address){
+    public static void printFromTo(String x, String y, int address){
         Integer from=null;//is it okay to be an Integer not int?
         Integer to = null;
 
@@ -80,7 +101,7 @@ public class Parser {
 
     }
 
-    public void semWait(String x,int address){
+    public static void semWait(String x,int address){
         if(x.equals("userInput")){
             if(Scheduler.semInput==0) {
                 Memory.stack[address + 1] = "BLOCKED";
@@ -110,26 +131,26 @@ public class Parser {
         }
     }
 
-    public void semSignal(String x){
+    public static void semSignal(String x){
         if(x.equals("userInput")){
             Scheduler.semInput=1;
             while(!Scheduler.blockedOnTakingInput.isEmpty()){
                 String processID=Scheduler.blockedOnTakingInput.poll();
-                Scheduler.readyQueue.put(processID, Scheduler.blockedQueue.get(processID));
+                Scheduler.readyQueue.add(Scheduler.blockedQueue.get(processID));
                 Scheduler.blockedQueue.remove(processID);
             }
         }else if(x.equals("userOutput")) {
             Scheduler.semScreen=1;
             while(!Scheduler.blockedOnScreen.isEmpty()){
                 String processID=Scheduler.blockedOnScreen.poll();
-                Scheduler.readyQueue.put(processID, Scheduler.blockedQueue.get(processID));
+                Scheduler.readyQueue.add(Scheduler.blockedQueue.get(processID));
                 Scheduler.blockedQueue.remove(processID);
             }
         } else{
             Scheduler.semFile=1;
             while(!Scheduler.blockedOnFile.isEmpty()){
                 String processID=Scheduler.blockedOnFile.poll();
-                Scheduler.readyQueue.put(processID, Scheduler.blockedQueue.get(processID));
+                Scheduler.readyQueue.add(Scheduler.blockedQueue.get(processID));
                 Scheduler.blockedQueue.remove(processID);
             }
         }
