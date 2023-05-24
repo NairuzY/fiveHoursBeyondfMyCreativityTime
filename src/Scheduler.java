@@ -100,8 +100,14 @@ public class Scheduler {
         if(runningProcess == null)
             if(!readyQueue.isEmpty()) {
                 runningProcess = readyQueue.poll();
+                if(Disk.getDisk().get(runningProcess.getId())!=null){
+                    storeInMemory(Disk.getDisk().get(runningProcess.getId()),runningProcess);
+                }
+
+
 
             }
+        Memory.stack[runningProcess.getAddress() + 1] = "RUNNING";
         timeSlice --;
         int iAddress = runningProcess.getAddress() + 5 + Integer.parseInt(Memory.stack[runningProcess.getAddress() + 2]);
         Parser.execute(Memory.stack[iAddress], runningProcess.getAddress());
@@ -133,7 +139,7 @@ public class Scheduler {
 
     private void setRunning(Process process){
         timeSlice = Integer.parseInt(getVal("slice"));
-        if(Disk.getDisk().get(process.id)!=null){
+        if(Disk.getDisk().get(process.getId())!=null){
 
         }
     }
@@ -149,7 +155,7 @@ public class Scheduler {
     private void executeInstruction(Process process, String instruction) {
         // Execute the instruction based on the process
         // This is just a placeholder and you need to replace it with your own logic
-        System.out.println("Executing instruction: " + instruction + " for process: " + process.id);
+        System.out.println("Executing instruction: " + instruction + " for process: " + process.getId());
     }
 
 

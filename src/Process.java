@@ -7,7 +7,8 @@ public class Process {
     private boolean inMemory = true;
 
     private int address; //remember to change whenever swapped out and in
-    String id;
+    private String id;
+
 
     public Process(String id){
         this.id = id;
@@ -31,6 +32,9 @@ public class Process {
 
     public void setAddress(int address) {
         this.address = address;
+    }
+    public String getId() {
+        return id;
     }
 
 }
