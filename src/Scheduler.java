@@ -53,12 +53,13 @@ public class Scheduler {
 
     public void storeInMemory(String[] values, Process process) throws IOException {
         int min = memory.allocateMemory();
+        System.out.println(min+"Toooooooooooooooooz");
         process.setAddress(min);
         int max = min+19;
         System.arraycopy(values, 0, memory.stack, min, values.length);
         memory.setStack(""+min,min+3);
         memory.setStack(""+max,min+4);
-        memory.getInMemory().add(memory.getStack()[min].toString());
+        memory.getInMemory().add(memory.getStack()[min]+"");
 
     }
     public Process toMemory(String fileName,int processId) throws IOException {
@@ -93,6 +94,7 @@ public class Scheduler {
                 processesCount++;
             }
             Boolean finished=runScheduler();
+
             timeSlice--;
             if(timeSlice == 0){
                 //running process b2et null
@@ -148,14 +150,31 @@ return false;
             memory.stack[runningProcess.getAddress() + 2] = iAddress - runningProcess.getAddress() - 8 +"";
         }
     }
-    public void updateDisk() throws IOException {
+    public void updateDisk(String[] values) throws IOException {
         FileReader oldDisk = new FileReader("src/resources/Disk.txt");
         BufferedReader br = new BufferedReader(oldDisk);
         StringBuilder newDisk = new StringBuilder();
-        String curLine;
-        while ((curLine = br.readLine()) != null) {
-            newDisk.append(curLine).append("\n");
+        String curLine = br.readLine();
+        boolean flag=false;
+        int i=0;
+        while (i<values.length){
+            while (curLine != null) {
+                if(i<values.length){
+                if(curLine.equals(values[i])){
+                    i++;
+                    flag=true;
+                }
+                else{
+                    newDisk.append(curLine).append("\n");
+                    }
+                }
+                curLine = br.readLine();
+            }
         }
+//        while (curLine != null) {
+//             newDisk.append(curLine).append("\n");
+//             curLine = br.readLine();
+//         }
         FileWriter Disk = new FileWriter("src/resources/Disk.txt");
         Disk.write(newDisk.toString());
         Disk.close();
@@ -172,7 +191,7 @@ return false;
                     values[i] = line.equals("null")?null:line;
                 }
                 System.out.println("Swapped out of disk process with id= "+values[0]);
-                updateDisk();
+                updateDisk(values);
                 return values;
             }
         }

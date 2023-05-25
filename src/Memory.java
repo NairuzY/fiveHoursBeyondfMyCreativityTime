@@ -61,6 +61,9 @@ public class Memory {
         for(int i=0; i<20; i++){
             if(values[i]!=null)
                 sb.append(values[i]+ "\n");
+            else{
+                sb.append("null"+ "\n");
+            }
         }
         writer.append(sb);
         writer.flush();
