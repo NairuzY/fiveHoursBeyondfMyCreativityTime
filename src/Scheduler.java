@@ -10,7 +10,7 @@ public class Scheduler {
     static Queue<String> blockedOnTakingInput = new LinkedList<>();
     static Queue<String> blockedOnFile = new LinkedList<>();
     Hashtable<Integer,Integer> programs= new Hashtable<>();
-    Memory memory = new Memory();
+    public static Memory memory = new Memory();
     int processesCount=0;
     int currentTime = 0;
     static int semFile = 1;
@@ -21,25 +21,25 @@ public class Scheduler {
         if(!readyQueue.isEmpty()) {
             runningProcess = readyQueue.poll();
             timeSlice = Integer.parseInt(getVal("slice"));
-            if(!Memory.getInMemory().contains(runningProcess.getId())){//3amalet null pointerexception
+            if(!memory.getInMemory().contains(runningProcess.getId())){//3amalet null pointerexception
                 String[] values = retrieveFromDisk(runningProcess.getId());
                 storeInMemory(values,runningProcess);
             }
-            Memory.stack[runningProcess.getAddress() + 1] = "RUNNING";
+            memory.stack[runningProcess.getAddress() + 1] = "RUNNING";
             printQueues();
             return true;
         }
         return false;
     }
     public static void block(Blocking reason){
-        Memory.stack[runningProcess.getAddress() + 1] = "BLOCKED";
-        Scheduler.blockedQueue.put(Memory.stack[runningProcess.getAddress()],Scheduler.runningProcess);
+        memory.stack[runningProcess.getAddress() + 1] = "BLOCKED";
+        Scheduler.blockedQueue.put(memory.stack[runningProcess.getAddress()],Scheduler.runningProcess);
         if(reason == Blocking.Input)
-            Scheduler.blockedOnTakingInput.add(Memory.stack[runningProcess.getAddress()]);
+            Scheduler.blockedOnTakingInput.add(memory.stack[runningProcess.getAddress()]);
         else if(reason == Blocking.File)
-            Scheduler.blockedOnFile.add(Memory.stack[runningProcess.getAddress()]);
+            Scheduler.blockedOnFile.add(memory.stack[runningProcess.getAddress()]);
         else
-            Scheduler.blockedOnScreen.add(Memory.stack[runningProcess.getAddress()]);
+            Scheduler.blockedOnScreen.add(memory.stack[runningProcess.getAddress()]);
         readyQueue.remove(runningProcess);
         System.out.println("Scheduler blocked process with id "+runningProcess.getId());
         runningProcess = null;
@@ -55,7 +55,7 @@ public class Scheduler {
         int min = memory.allocateMemory();
         process.setAddress(min);
         int max = min+19;
-        System.arraycopy(values, 0, Memory.stack, min, values.length);
+        System.arraycopy(values, 0, memory.stack, min, values.length);
         memory.setStack(""+min,min+3);
         memory.setStack(""+max,min+4);
         memory.getInMemory().add(memory.getStack()[min].toString());
@@ -85,7 +85,7 @@ public class Scheduler {
         programs.put(Integer.parseInt(getVal("program2")),2);
         programs.put(Integer.parseInt(getVal("program3")),3);
         while(true){
-            System.out.println("Memory in start of cycle "+currentTime + " is "+memory.toString());
+            System.out.println("Memory in start of cycle "+currentTime + " is "+ "\n"+memory.toString());
             if(programs.get(currentTime)!=null){
                 Process p=toMemory("src/resources/Program_"+programs.get(currentTime)+".txt",programs.get(currentTime));
                 readyQueue.add(p);
@@ -95,9 +95,12 @@ public class Scheduler {
             Boolean finished=runScheduler();
             timeSlice--;
             if(timeSlice == 0){
-                memory.getStack()[runningProcess.getAddress()+1]="READY";
-                readyQueue.add(runningProcess);
-                runningProcess= null;
+                //running process b2et null
+               if(runningProcess!=null) {
+                   memory.getStack()[runningProcess.getAddress() + 1] = "READY";
+                   readyQueue.add(runningProcess);
+                   runningProcess = null;
+               }
             }
             currentTime++;
             if(finished && processesCount==3)
@@ -111,9 +114,9 @@ public class Scheduler {
                 return true; //handle whole program termination or change this
         }
 
-        int nextInstruction = runningProcess.getAddress() + 8 + Integer.parseInt(Memory.stack[runningProcess.getAddress() + 2]);
-        int max = Integer.parseInt(Memory.stack[runningProcess.getAddress() + 4]);
-            if(Memory.stack[nextInstruction] == null || nextInstruction > max) { //keda one cycle will be wasted
+        int nextInstruction = runningProcess.getAddress() + 8 + Integer.parseInt(memory.stack[runningProcess.getAddress() + 2]);
+        int max = Integer.parseInt(memory.stack[runningProcess.getAddress() + 4]);
+            if(memory.stack[nextInstruction] == null || nextInstruction > max) { //keda one cycle will be wasted
                 terminate();
                 runScheduler();
             }
@@ -137,12 +140,12 @@ return false;
         readyQueue.add(process);
     }
     private void execute() throws IOException {
-        int iAddress = runningProcess.getAddress() + 8 + Integer.parseInt(Memory.stack[runningProcess.getAddress() + 2]);
-        System.out.println("Executing instruction: " + Memory.stack[iAddress] + " for process: " + runningProcess.getId());
-        Parser.execute(Memory.stack[iAddress]);
+        int iAddress = runningProcess.getAddress() + 8 + Integer.parseInt(memory.stack[runningProcess.getAddress() + 2]);
+        System.out.println("Executing instruction: " + memory.stack[iAddress] + " for process: " + runningProcess.getId());
+        Parser.execute(memory.stack[iAddress]);
         if(!Parser.dontMove) {
             iAddress++;
-            Memory.stack[runningProcess.getAddress() + 2] = iAddress - runningProcess.getAddress() - 8 +"";
+            memory.stack[runningProcess.getAddress() + 2] = iAddress - runningProcess.getAddress() - 8 +"";
         }
     }
     public void updateDisk() throws IOException {
@@ -189,6 +192,10 @@ return false;
         return keyval;
         }
         public static void main(String[] args) throws IOException {
+        //pls clear disk.txt file before running
+           FileWriter Disk = new FileWriter("src/resources/Disk.txt");
+              Disk.write("");
+                Disk.close();
         Scheduler scheduler = new Scheduler();
         scheduler.cycle();
         }

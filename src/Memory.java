@@ -70,6 +70,7 @@ public class Memory {
 
     public String toString() {
         StringBuilder sb = new StringBuilder();
+        sb.append("=====================================================\n");
         if(stack[0]==null && stack[20]==null) return "The Memory is empty";
         if(stack[0]!=null){
         sb.append("Process_"+stack[0]+" ID="+stack[0]+"\n");
@@ -95,6 +96,7 @@ public class Memory {
                     sb.append(stack[i]+ "\n");
             }
         }
+        sb.append("=====================================================\n");
         return sb.toString();
     }
 }
