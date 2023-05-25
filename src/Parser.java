@@ -6,30 +6,23 @@ public class Parser {
     public static void execute(String instructionLine, int address) throws IOException {
         String[] instruction = instructionLine.split(" ");
         switch(instruction[0]){
-            case "print": print(instruction[1]); break;
+            case "print": SystemCalls.print(instruction[1]); break;
             case "assign": assign(instruction, address); break;
             case "writeFile": writeFile(instruction[1], instruction[2], address);
-            case "readFile" : readFile(instruction[1]); break;
+            case "readFile" : SystemCalls.readFile(instruction[1]); break;
             case "printFromTo" : printFromTo(instruction[1], instruction[2], address); break;
             case "semWait": semWait(instruction[1],address); break;
             case "semSignal" : semSignal(instruction[1]); break;
             default:
         }
     }
-
-    public static void print(String x){
-        System.out.println(x);
-    }
-
     public static void assign(String[] arr, int address) throws IOException {
         String var;
-        if(arr[2].equals("input")){
-            System.out.println("Please enter a value");
-            BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
-            var = br.readLine();
-        } else if(arr[2].equals("readFile")) {
+        if(arr[2].equals("input"))
+            var = SystemCalls.input();
+        else if(arr[2].equals("readFile")) {
             if (Scheduler.runningProcess.getTemp() == null) {
-                readFile(arr[3]);
+                SystemCalls.readFile(arr[3]);
                 dontMove = true;
                 return;
             } else {
@@ -46,9 +39,7 @@ public class Parser {
             }
         }
         //we'll have to use instruction[3] to find the variable to read from memory
-
     }
-
     public static void writeFile(String x, String y, int address) throws IOException {
         String xVal = null;
         String yVal = null;
@@ -65,17 +56,8 @@ public class Parser {
             System.out.println("input is invalid");
             return;
         }
-        File f = new File("src/"+xVal);
-        FileWriter w = new FileWriter(f);
-        w.write(yVal);
-        w.close();
+        SystemCalls.writeFile(xVal, yVal);
     }
-
-    public static void readFile(String x) throws IOException {
-        BufferedReader br = new BufferedReader(new FileReader("src/"+x));
-        Scheduler.runningProcess.setTemp(br.readLine());
-    }
-
     public static void printFromTo(String x, String y, int address){
         Integer from=null;//is it okay to be an Integer not int?
         Integer to = null;
@@ -98,7 +80,6 @@ public class Parser {
         }
 
     }
-
     public static void semWait(String x,int address){
         if(x.equals("userInput")){
             if(Scheduler.semInput==0) {
@@ -128,7 +109,6 @@ public class Parser {
 
         }
     }
-
     public static void semSignal(String x){
         if(x.equals("userInput")){
             Scheduler.semInput=1;
