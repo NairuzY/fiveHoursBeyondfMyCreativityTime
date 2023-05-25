@@ -9,74 +9,56 @@ public class Parser {
             case "print": SystemCalls.print(instruction[1]); break;
             case "assign": assign(instruction, address); break;
             case "writeFile": writeFile(instruction[1], instruction[2], address);
-            case "readFile" : SystemCalls.readFile(instruction[1]); break;
+            case "readFile" : readFile(instruction[1],address); break;
             case "printFromTo" : printFromTo(instruction[1], instruction[2], address); break;
             case "semWait": semWait(instruction[1],address); break;
             case "semSignal" : semSignal(instruction[1]); break;
             default:
         }
     }
+
+
+
     public static void assign(String[] arr, int address) throws IOException {
         String var;
-        if(arr[2].equals("input"))
-            var = SystemCalls.input();
+        if(arr[2].equals("input")) {
+            if(Scheduler.runningProcess.getTemp() == null) {
+                var = SystemCalls.input();
+                Scheduler.runningProcess.setTemp(var);
+                dontMove = true;
+            }else{
+                SystemCalls.writeToMemory(arr[1],Scheduler.runningProcess.getTemp(),address);
+                Scheduler.runningProcess.setTemp(null);
+                dontMove = false;
+            }
+        }
         else if(arr[2].equals("readFile")) {
             if (Scheduler.runningProcess.getTemp() == null) {
-                SystemCalls.readFile(arr[3]);
+                String file=readFile(arr[3],address);
+                Scheduler.runningProcess.setTemp(file);
                 dontMove = true;
-                return;
-            } else {
-                var = Scheduler.runningProcess.getTemp();
+            }else {
+                SystemCalls.writeToMemory(arr[1],Scheduler.runningProcess.getTemp(),address);
                 Scheduler.runningProcess.setTemp(null);
-            }
-        } else
-            var = arr[2];
-        var = arr[0]+"="+var;
-        for(int i=address+5; i<address+8; i++){
-            if(Memory.stack[i] == null){
-                Memory.stack[i] = var;
-                return;
+                dontMove = false;
             }
         }
         //we'll have to use instruction[3] to find the variable to read from memory
     }
+    private static String readFile(String x, int address) throws IOException {
+        String file=SystemCalls.readFromMemory(x,address);
+        return SystemCalls.readFile(file);
+    }
     public static void writeFile(String x, String y, int address) throws IOException {
-        String xVal = null;
-        String yVal = null;
-        for(int i=address+5; i<address+8; i++){
-            if(Memory.stack[i]!=null){
-                String[] arr = Memory.stack[i].split("=");
-                if(arr[0].equals(x))
-                    xVal = arr[1];
-                else if(arr[0].equals(y))
-                    yVal = arr[1];
-            }
-        }
-        if(xVal==null || yVal==null){
-            System.out.println("input is invalid");
-            return;
-        }
-        SystemCalls.writeFile(xVal, yVal);
+        String file=SystemCalls.readFromMemory(x,address);
+        String yval=SystemCalls.readFromMemory(y,address);
+        SystemCalls.writeFile(file, yval, address);
     }
     public static void printFromTo(String x, String y, int address){
-        Integer from=null;//is it okay to be an Integer not int?
-        Integer to = null;
-
-        for(int i=address+5; i<address+8; i++){
-            if(Memory.stack[i]!=null){
-                String[] arr = Memory.stack[i].split("=");
-                if(arr[0].equals(x))
-                    from = Integer.parseInt(arr[1]);
-                else if(arr[0].equals(y))
-                    to = Integer.parseInt(arr[1]);
-            }
-        }
-        if(from==null || to==null){
-            System.out.println("input is invalid");
-            return;
-        }
+        int from=Integer.parseInt(SystemCalls.readFromMemory(x,address));//is it okay to be an Integer not int?
+        int to = Integer.parseInt(SystemCalls.readFromMemory(y,address));
         for(int i=from+1; i<to; i++){
-            System.out.println(i);
+            SystemCalls.print(i+"");
         }
 
     }
