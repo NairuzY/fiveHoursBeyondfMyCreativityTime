@@ -3,7 +3,8 @@ import java.io.*;
 public class Parser {
 
     static boolean dontMove = false;
-    public static void execute(String instructionLine, int address) throws IOException {
+    public static void execute(String instructionLine) throws IOException {
+        int address = Scheduler.runningProcess.getAddress();
         String[] instruction = instructionLine.split(" ");
         switch(instruction[0]){
             case "print": SystemCalls.print(instruction[1]); break;
@@ -11,7 +12,7 @@ public class Parser {
             case "writeFile": writeFile(instruction[1], instruction[2], address);
             case "readFile" : readFile(instruction[1],address); break;
             case "printFromTo" : printFromTo(instruction[1], instruction[2], address); break;
-            case "semWait": semWait(instruction[1],address); break;
+            case "semWait": semWait(instruction[1]); break;
             case "semSignal" : semSignal(instruction[1]); break;
             default:
         }
@@ -62,33 +63,23 @@ public class Parser {
         }
 
     }
-    public static void semWait(String x,int address){
+    public static void semWait(String x){
         if(x.equals("userInput")){
-            if(Scheduler.semInput==0) {
-                Memory.stack[address + 1] = "BLOCKED";
-                Scheduler.blockedQueue.put(Memory.stack[address],Scheduler.runningProcess);
-                Scheduler.blockedOnTakingInput.add(Memory.stack[address]);
-            }
+            if(Scheduler.semInput==0)
+                Scheduler.block(Blocking.Input);
             else
                 Scheduler.semInput=0;
         }else if(x.equals("userOutput")){
-            if(Scheduler.semScreen==0) {
-                Memory.stack[address + 1] = "BLOCKED";
-                Scheduler.blockedQueue.put(Memory.stack[address],Scheduler.runningProcess);
-                Scheduler.blockedOnScreen.add(Memory.stack[address]);
-            }
+            if(Scheduler.semScreen==0)
+                Scheduler.block(Blocking.Screen);
             else
                 Scheduler.semScreen=0;
 
         }else{
-            if(Scheduler.semFile==0) {
-                Memory.stack[address + 1] = "BLOCKED";
-                Scheduler.blockedQueue.put(Memory.stack[address],Scheduler.runningProcess);
-                Scheduler.blockedOnFile.add(Memory.stack[address]);
-            }
+            if(Scheduler.semFile==0)
+                Scheduler.block(Blocking.File);
             else
                 Scheduler.semFile=0;
-
         }
     }
     public static void semSignal(String x){

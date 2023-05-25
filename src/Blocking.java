@@ -1,5 +1,5 @@
 public enum Blocking {
-    blockedOnScreen,
-    blockedOnTakingInput,
-    blockedOnFile,
+    Screen,
+    Input,
+    File,
 }

@@ -17,21 +17,37 @@ public class Scheduler {
     static int semScreen = 1;
     static int semInput = 1;
     private int timeSlice = Integer.parseInt(getVal("slice"));
-    public void choose(){
-
+    public boolean choose() throws IOException {
+        if(!readyQueue.isEmpty()) {
+            runningProcess = readyQueue.poll();
+            timeSlice = Integer.parseInt(getVal("slice"));
+            if(!Memory.getInMemory().contains(runningProcess.getId())){
+                String[] values = retrieveFromDisk(runningProcess.getId());
+                storeInMemory(values,runningProcess);
+            }
+            Memory.stack[runningProcess.getAddress() + 1] = "RUNNING";
+            printQueues();
+            return true;
+        }
+        return false;
     }
-
-
-    public void block(Process process, BLOCKING reason){
-        Memory.stack[process.getAddress() + 1] = "BLOCKED";
-        Scheduler.blockedQueue.put(Memory.stack[process.getAddress()],Scheduler.runningProcess);
-        Scheduler.blockedOnTakingInput.add(Memory.stack[process.getAddress()]);
-        Scheduler.blockedQueue.put(Memory.stack[process.getAddress()],Scheduler.runningProcess);
-        System.out.println("Scheduler block process with id "+process.getId());
+    public static void block(Blocking reason){
+        Memory.stack[runningProcess.getAddress() + 1] = "BLOCKED";
+        Scheduler.blockedQueue.put(Memory.stack[runningProcess.getAddress()],Scheduler.runningProcess);
+        if(reason == Blocking.Input)
+            Scheduler.blockedOnTakingInput.add(Memory.stack[runningProcess.getAddress()]);
+        else if(reason == Blocking.File)
+            Scheduler.blockedOnFile.add(Memory.stack[runningProcess.getAddress()]);
+        else
+            Scheduler.blockedOnScreen.add(Memory.stack[runningProcess.getAddress()]);
+        readyQueue.remove(runningProcess);
+        System.out.println("Scheduler blocked process with id "+runningProcess.getId());
+        printQueues();
     }
-
     public void terminate(){
-
+        System.out.println("Scheduler terminated process with id "+runningProcess.getId());
+        runningProcess = null;
+        printQueues();
     }
 
     public void printQueue(Queue<Process> queue){
@@ -94,7 +110,7 @@ public class Scheduler {
     }
 
     public void cycle() throws IOException {
-        for( ; currentTime<100 ;currentTime++){ //to be handled
+        for( ; true ;currentTime++){ //to be handled
             if(programs.get(currentTime)!=null){
                 toMemory("Program_"+programs.get(currentTime)+".txt",programs.get(currentTime));
 
@@ -102,34 +118,22 @@ public class Scheduler {
         }
     }
    public void runScheduler() throws IOException {
-        if(runningProcess == null)
-            if(!readyQueue.isEmpty()) {
-                runningProcess = readyQueue.poll();
-                if(!Memory.getInMemory().contains(runningProcess.getId())){
-                    String[] values = retrieveFromDisk(runningProcess.getId());
-                    storeInMemory(values,runningProcess);
-                }
-
-
-
-            }
-        Memory.stack[runningProcess.getAddress() + 1] = "RUNNING";
+        if(runningProcess == null){
+            if(!choose())
+                return; //handle whole program termination or change this
+        }
         timeSlice --;
-        int iAddress = runningProcess.getAddress() + 5 + Integer.parseInt(Memory.stack[runningProcess.getAddress() + 2]);
-        Parser.execute(Memory.stack[iAddress], runningProcess.getAddress());
-        if(!Parser.dontMove){
-            iAddress++;
-            int max = Integer.parseInt(Memory.stack[runningProcess.getAddress() + 4]);
-            if(Memory.stack[iAddress] == null || iAddress > max) {
+        int nextInstruction = runningProcess.getAddress() + 5 + Integer.parseInt(Memory.stack[runningProcess.getAddress() + 2]);
+        int max = Integer.parseInt(Memory.stack[runningProcess.getAddress() + 4]);
+            if(Memory.stack[nextInstruction] == null || nextInstruction > max) {
                 terminate();
                 return;
             }
-            Memory.stack[runningProcess.getAddress() + 2] = iAddress - runningProcess.getAddress() - 5 +"";
             if(timeSlice == 0){
                 readyQueue.add(runningProcess);
                 runningProcess= null;
             }
-        }
+
 
             // Check if the process is blocked or finished
 //            if (currentProcess.getInfo().getState() == ProcessState.BLOCKED) {
@@ -137,19 +141,8 @@ public class Scheduler {
 //            } else if (currentProcess.getInfo().getState() != ProcessState.TERMINATED) {
 //                readyQueue.add(currentProcess);
 //            }
-
-            // Print queues after scheduling event
-            printQueues();
     }
-
-
-    private void setRunning(Process process){
-        timeSlice = Integer.parseInt(getVal("slice"));
-        if(Memory.getInMemory().contains(process.getId())){
-
-        }
-    }
-    private void printQueues() {
+    private static void printQueues() {
         System.out.println("Ready Queue: " + readyQueue);
         System.out.println("Blocked Queue: " + blockedQueue);
     }
@@ -157,10 +150,14 @@ public class Scheduler {
     public void addProcess(Process process) {
         readyQueue.add(process);
     }
-    private void executeInstruction(Process process, String instruction) {
-        // Execute the instruction based on the process
-        // This is just a placeholder and you need to replace it with your own logic
-        System.out.println("Executing instruction: " + instruction + " for process: " + process.getId());
+    private void execute() throws IOException {
+        int iAddress = runningProcess.getAddress() + 5 + Integer.parseInt(Memory.stack[runningProcess.getAddress() + 2]);
+        System.out.println("Executing instruction: " + Memory.stack[iAddress] + " for process: " + runningProcess.getId());
+        Parser.execute(Memory.stack[iAddress]);
+        if(!Parser.dontMove) {
+            iAddress++;
+            Memory.stack[runningProcess.getAddress() + 2] = iAddress - runningProcess.getAddress() - 5 +"";
+        }
     }
     public String[] retrieveFromDisk(String id) throws IOException {
         BufferedReader br = new BufferedReader(new FileReader("src/resources/Disk.txt"));
