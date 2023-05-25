@@ -1,9 +1,7 @@
 import java.io.*;
-import java.util.*;
 
 public class Parser {
 
-    static String temp = null;
     static boolean dontMove = false;
     public static void execute(String instructionLine, int address) throws IOException {
         String[] instruction = instructionLine.split(" ");
@@ -30,13 +28,13 @@ public class Parser {
             BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
             var = br.readLine();
         } else if(arr[2].equals("readFile")) {
-            if (temp == null) {
+            if (Scheduler.runningProcess.getTemp() == null) {
                 readFile(arr[3]);
                 dontMove = true;
                 return;
             } else {
-                var = temp;
-                temp = null;
+                var = Scheduler.runningProcess.getTemp();
+                Scheduler.runningProcess.setTemp(null);
             }
         } else
             var = arr[2];
@@ -75,7 +73,7 @@ public class Parser {
 
     public static void readFile(String x) throws IOException {
         BufferedReader br = new BufferedReader(new FileReader("src/"+x));
-        temp = br.readLine();
+        Scheduler.runningProcess.setTemp(br.readLine());
     }
 
     public static void printFromTo(String x, String y, int address){

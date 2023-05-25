@@ -5,11 +5,9 @@ import java.util.Properties;
 public class Process {
     private int remainingTime; //should we keep?
 //    private boolean inMemory = true;
-
     private int address; //remember to change whenever swapped out and in
-    private String id;
-
-
+    private final String id;
+    private String temp;
     public Process(String id){
         this.id = id;
     }
@@ -35,6 +33,12 @@ public class Process {
     }
     public String getId() {
         return id;
+    }
+    public String getTemp() {
+        return temp;
+    }
+    public void setTemp(String temp) {
+        this.temp = temp;
     }
 
 }
