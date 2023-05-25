@@ -4,7 +4,7 @@ import java.util.Properties;
 
 public class Process {
     private int remainingTime; //should we keep?
-    private boolean inMemory = true;
+//    private boolean inMemory = true;
 
     private int address; //remember to change whenever swapped out and in
     private String id;
@@ -19,13 +19,13 @@ public class Process {
     public void setRemainingTime(int remainingTime) {
         this.remainingTime = remainingTime;
     }
-    public boolean isInMemory() {
-        return inMemory;
-    }
-
-    public void setInMemory(boolean inMemory) {
-        this.inMemory = inMemory;
-    }
+//    public boolean isInMemory() {
+//        return inMemory;
+//    }
+//
+//    public void setInMemory(boolean inMemory) {
+//        this.inMemory = inMemory;
+//    }
     public int getAddress() {
         return address;
     }

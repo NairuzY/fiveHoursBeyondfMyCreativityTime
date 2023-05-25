@@ -62,14 +62,14 @@ public class Scheduler {
 //            }
 //        }
 //    }
-    public void storeInMemory(String[] values, Process process){
+    public void storeInMemory(String[] values, Process process) throws IOException {
         int min = memory.allocateMemory();
         process.setAddress(min);
         int max = min+19;
         System.arraycopy(values, 0, Memory.stack, min, values.length);
         memory.setStack(""+min,min+3);
         memory.setStack(""+max,min+4);
-        process.setInMemory(true);
+        Memory.getInMemory().add(process.getId());
     }
     public void toMemory(String fileName,int processId) throws IOException {
         Process process = new Process(processId+"");
@@ -100,8 +100,9 @@ public class Scheduler {
         if(runningProcess == null)
             if(!readyQueue.isEmpty()) {
                 runningProcess = readyQueue.poll();
-                if(Disk.getDisk().get(runningProcess.getId())!=null){
-                    storeInMemory(Disk.getDisk().get(runningProcess.getId()),runningProcess);
+                if(!Memory.getInMemory().contains(runningProcess.getId())){
+                    String[] values = retrieveFromDisk(runningProcess.getId());
+                    storeInMemory(values,runningProcess);
                 }
 
 
@@ -139,7 +140,7 @@ public class Scheduler {
 
     private void setRunning(Process process){
         timeSlice = Integer.parseInt(getVal("slice"));
-        if(Disk.getDisk().get(process.getId())!=null){
+        if(Memory.getInMemory().contains(process.getId())){
 
         }
     }
@@ -151,37 +152,42 @@ public class Scheduler {
     public void addProcess(Process process) {
         readyQueue.add(process);
     }
-
     private void executeInstruction(Process process, String instruction) {
         // Execute the instruction based on the process
         // This is just a placeholder and you need to replace it with your own logic
         System.out.println("Executing instruction: " + instruction + " for process: " + process.getId());
     }
-
-
-    public static String getVal(String key)
-    {
+    public String[] retrieveFromDisk(String id) throws IOException {
+        BufferedReader br = new BufferedReader(new FileReader("src/resources/Disk.txt"));
+        String line;
+        String[] values = new String[20];
+        values[0] = id;
+        while((line = br.readLine())!=null){
+            if(line.equals(id)){
+                for(int i=1; i<20; i++){
+                    line = br.readLine();
+                    values[i] = line.equals("null")?null:line;
+                }
+                return values;
+            }
+        }
+        return null;
+    } //while uploading to disk, make sure to upload 20 values even if it'll be null
+    public static String getVal(String key) {
         String keyval = null;
-        //Let's consider properties file is in project folder itself
-
-        File file = new File("src/Resources/DBApp.config");
-
-        //Creating properties object
+        File file = new File("src/resources/os.config");
         Properties prop = new Properties();
-        //Creating InputStream object to read data
-        FileInputStream objInput = null;
+        FileInputStream objInput;
         try{
             objInput = new FileInputStream(file);
-            //Reading properties key/values in file
             prop.load(objInput);
             keyval = prop.getProperty(key);
             objInput.close();
         }catch(Exception e){System.out.println(e.getMessage());}
         return keyval;
+        }
+
     }
-
-
-}
 
 //    public Scheduler(int timeSlice) {
 //        this.readyQueue = new LinkedList<>();
