@@ -21,7 +21,7 @@ public class Scheduler {
         if(!readyQueue.isEmpty()) {
             runningProcess = readyQueue.poll();
             timeSlice = Integer.parseInt(getVal("slice"));
-            if(!Memory.getInMemory().contains(runningProcess.getId())){
+            if(!Memory.getInMemory().contains(runningProcess.getId())){//3amalet null pointerexception
                 String[] values = retrieveFromDisk(runningProcess.getId());
                 storeInMemory(values,runningProcess);
             }
@@ -59,10 +59,9 @@ public class Scheduler {
         memory.setStack(""+min,min+3);
         memory.setStack(""+max,min+4);
         memory.getInMemory().add(memory.getStack()[min].toString());
-        System.out.println("Swapped out of disk process with id= "+memory.getStack()[min].toString());
 
     }
-    public void toMemory(String fileName,int processId) throws IOException {
+    public Process toMemory(String fileName,int processId) throws IOException {
         Process process = new Process(processId+"");
         String[] values = new String[20];
         values[0] = ""+processId;
@@ -77,19 +76,26 @@ public class Scheduler {
             values[i] = line;
         }
         storeInMemory(values, process);
+        return process;
+
     }
 
     public void cycle() throws IOException {
+        programs.put(Integer.parseInt(getVal("program1")),1);
+        programs.put(Integer.parseInt(getVal("program2")),2);
+        programs.put(Integer.parseInt(getVal("program3")),3);
         while(true){
-System.out.println("Memory in cycle "+currentTime + " is "+memory.toString());
-
+            System.out.println("Memory in start of cycle "+currentTime + " is "+memory.toString());
             if(programs.get(currentTime)!=null){
-                toMemory("Program_"+programs.get(currentTime)+".txt",programs.get(currentTime));
+                Process p=toMemory("src/resources/Program_"+programs.get(currentTime)+".txt",programs.get(currentTime));
+                readyQueue.add(p);
+                memory.getStack()[p.getAddress()+1]="READY";
                 processesCount++;
             }
             Boolean finished=runScheduler();
             timeSlice--;
             if(timeSlice == 0){
+                memory.getStack()[runningProcess.getAddress()+1]="READY";
                 readyQueue.add(runningProcess);
                 runningProcess= null;
             }
@@ -105,7 +111,7 @@ System.out.println("Memory in cycle "+currentTime + " is "+memory.toString());
                 return true; //handle whole program termination or change this
         }
 
-        int nextInstruction = runningProcess.getAddress() + 5 + Integer.parseInt(Memory.stack[runningProcess.getAddress() + 2]);
+        int nextInstruction = runningProcess.getAddress() + 8 + Integer.parseInt(Memory.stack[runningProcess.getAddress() + 2]);
         int max = Integer.parseInt(Memory.stack[runningProcess.getAddress() + 4]);
             if(Memory.stack[nextInstruction] == null || nextInstruction > max) { //keda one cycle will be wasted
                 terminate();
@@ -124,20 +130,32 @@ return false;
     }
     private static void printQueues() {
         System.out.println("Ready Queue: " + readyQueue);
-        System.out.println("Blocked Queue: " + blockedQueue);
+        System.out.println("Blocked Queue: "+blockedQueue);
     }
 
     public void addProcess(Process process) {
         readyQueue.add(process);
     }
     private void execute() throws IOException {
-        int iAddress = runningProcess.getAddress() + 5 + Integer.parseInt(Memory.stack[runningProcess.getAddress() + 2]);
+        int iAddress = runningProcess.getAddress() + 8 + Integer.parseInt(Memory.stack[runningProcess.getAddress() + 2]);
         System.out.println("Executing instruction: " + Memory.stack[iAddress] + " for process: " + runningProcess.getId());
         Parser.execute(Memory.stack[iAddress]);
         if(!Parser.dontMove) {
             iAddress++;
-            Memory.stack[runningProcess.getAddress() + 2] = iAddress - runningProcess.getAddress() - 5 +"";
+            Memory.stack[runningProcess.getAddress() + 2] = iAddress - runningProcess.getAddress() - 8 +"";
         }
+    }
+    public void updateDisk() throws IOException {
+        FileReader oldDisk = new FileReader("src/resources/Disk.txt");
+        BufferedReader br = new BufferedReader(oldDisk);
+        StringBuilder newDisk = new StringBuilder();
+        String curLine;
+        while ((curLine = br.readLine()) != null) {
+            newDisk.append(curLine).append("\n");
+        }
+        FileWriter Disk = new FileWriter("src/resources/Disk.txt");
+        Disk.write(newDisk.toString());
+        Disk.close();
     }
     public String[] retrieveFromDisk(String id) throws IOException {
         BufferedReader br = new BufferedReader(new FileReader("src/resources/Disk.txt"));
@@ -150,6 +168,8 @@ return false;
                     line = br.readLine();
                     values[i] = line.equals("null")?null:line;
                 }
+                System.out.println("Swapped out of disk process with id= "+values[0]);
+                updateDisk();
                 return values;
             }
         }
@@ -167,6 +187,10 @@ return false;
             objInput.close();
         }catch(Exception e){System.out.println(e.getMessage());}
         return keyval;
+        }
+        public static void main(String[] args) throws IOException {
+        Scheduler scheduler = new Scheduler();
+        scheduler.cycle();
         }
 
     }

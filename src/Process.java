@@ -6,7 +6,7 @@ public class Process {
     private int remainingTime; //should we keep?
 //    private boolean inMemory = true;
     private int address; //remember to change whenever swapped out and in
-    private final String id;
+    private  String id;
     private String temp;
     public Process(String id){
         this.id = id;
@@ -41,11 +41,15 @@ public class Process {
         this.temp = temp;
     }
 
+
     @Override
     public String toString() {
         return "Process{" +
                 "id='" + id + '\'' +
                 '}';
+    }
+    public void setId(String id) {
+        this.id=id;
     }
 }
 

@@ -10,7 +10,7 @@ public class Memory {
         this.stack[index]=word;
     }
     boolean [] used = new boolean[2];
-    public Object[] getStack() {
+    public String[] getStack() {
         return stack;
     }
 
@@ -61,8 +61,6 @@ public class Memory {
         for(int i=0; i<20; i++){
             if(values[i]!=null)
                 sb.append(values[i]+ "\n");
-            else
-                sb.append("null"+"\n");
         }
         writer.append(sb);
         writer.flush();
