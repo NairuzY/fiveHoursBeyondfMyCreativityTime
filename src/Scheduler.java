@@ -21,8 +21,11 @@ public class Scheduler {
 
     }
 
-    public void block(){
+    public void block(Process process, Blocking reason){
 
+        Memory.stack[process.getAddress()+1] = "BLOCKED";
+        Scheduler.blockedQueue.put(Memory.stack[process.getAddress()],Scheduler.runningProcess);
+        System.out.println("Scheduler block process with id "+process.getId());
     }
 
     public void terminate(){
