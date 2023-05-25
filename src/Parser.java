@@ -52,7 +52,7 @@ public class Parser {
     public static void writeFile(String x, String y, int address) throws IOException {
         String file=SystemCalls.readFromMemory(x,address);
         String yval=SystemCalls.readFromMemory(y,address);
-        SystemCalls.writeFile(file, yval, address);
+        SystemCalls.writeFile(file, yval);
     }
     public static void printFromTo(String x, String y, int address){
         int from=Integer.parseInt(SystemCalls.readFromMemory(x,address));//is it okay to be an Integer not int?

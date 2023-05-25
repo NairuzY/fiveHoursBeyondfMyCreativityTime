@@ -10,7 +10,7 @@ public class SystemCalls {
         }
         return res;
     }
-    public static void writeFile(String file, String yval,int address) throws IOException {
+    public static void writeFile(String file, String yval) throws IOException {
         FileWriter w = new FileWriter("src/"+file+".txt", true);
         w.write(yval+"\n");
         w.close();
