@@ -42,6 +42,7 @@ public class Scheduler {
             Scheduler.blockedOnScreen.add(Memory.stack[runningProcess.getAddress()]);
         readyQueue.remove(runningProcess);
         System.out.println("Scheduler blocked process with id "+runningProcess.getId());
+        runningProcess = null;
         printQueues();
     }
     public void terminate(){
@@ -50,39 +51,6 @@ public class Scheduler {
         printQueues();
     }
 
-    public void printQueue(Queue<Process> queue){
-        //for()
-    }
-
-    // Implement Round Robin scheduling algorithm
-//    public void roundRobin(List<Process> processes, int timeQuantum) {
-//        Queue<Process> queue = new LinkedList<>();
-//
-//
-//        // Add all processes to the queue
-//        for (Process process : processes) {
-//            queue.add(process);
-//        }
-//
-//        while (!queue.isEmpty()) {
-//            Process currentProcess = queue.poll();
-//
-//            // Determine the time to execute for the current time quantum or remaining time
-//            int executionTime = Math.min(timeQuantum, currentProcess.getRemainingTime());
-//
-//            // Simulate process execution
-//            currentTime += executionTime;
-//            currentProcess.setRemainingTime(currentProcess.getRemainingTime() - executionTime);
-//
-//            // Check if the process has finished executing
-//            if (currentProcess.getRemainingTime() > 0) {
-//                // Add the process back to the queue for further execution
-//                queue.add(currentProcess);
-//            } else {
-//                System.out.println("Process " + currentProcess.getId() + " completed at time " + currentTime);
-//            }
-//        }
-//    }
     public void storeInMemory(String[] values, Process process) throws IOException {
         int min = memory.allocateMemory();
         process.setAddress(min);
@@ -90,7 +58,9 @@ public class Scheduler {
         System.arraycopy(values, 0, Memory.stack, min, values.length);
         memory.setStack(""+min,min+3);
         memory.setStack(""+max,min+4);
-        Memory.getInMemory().add(process.getId());
+        memory.getInMemory().add(memory.getStack()[min].toString());
+        System.out.println("Swapped out of disk process with id= "+memory.getStack()[min].toString());
+
     }
     public void toMemory(String fileName,int processId) throws IOException {
         Process process = new Process(processId+"");
@@ -110,30 +80,40 @@ public class Scheduler {
     }
 
     public void cycle() throws IOException {
-        for( ; true ;currentTime++){ //to be handled
+        while(true){
+System.out.println("Memory in cycle "+currentTime + " is "+memory.toString());
+
             if(programs.get(currentTime)!=null){
                 toMemory("Program_"+programs.get(currentTime)+".txt",programs.get(currentTime));
-
+                processesCount++;
             }
-        }
-    }
-   public void runScheduler() throws IOException {
-        if(runningProcess == null){
-            if(!choose())
-                return; //handle whole program termination or change this
-        }
-        timeSlice --;
-        int nextInstruction = runningProcess.getAddress() + 5 + Integer.parseInt(Memory.stack[runningProcess.getAddress() + 2]);
-        int max = Integer.parseInt(Memory.stack[runningProcess.getAddress() + 4]);
-            if(Memory.stack[nextInstruction] == null || nextInstruction > max) {
-                terminate();
-                return;
-            }
+            Boolean finished=runScheduler();
+            timeSlice--;
             if(timeSlice == 0){
                 readyQueue.add(runningProcess);
                 runningProcess= null;
             }
+            currentTime++;
+            if(finished && processesCount==3)
+                break;
 
+        }
+    }
+   public Boolean runScheduler() throws IOException {
+        if(runningProcess == null){
+            if(!choose())
+                return true; //handle whole program termination or change this
+        }
+
+        int nextInstruction = runningProcess.getAddress() + 5 + Integer.parseInt(Memory.stack[runningProcess.getAddress() + 2]);
+        int max = Integer.parseInt(Memory.stack[runningProcess.getAddress() + 4]);
+            if(Memory.stack[nextInstruction] == null || nextInstruction > max) { //keda one cycle will be wasted
+                terminate();
+                runScheduler();
+            }
+            execute();
+
+return false;
 
             // Check if the process is blocked or finished
 //            if (currentProcess.getInfo().getState() == ProcessState.BLOCKED) {

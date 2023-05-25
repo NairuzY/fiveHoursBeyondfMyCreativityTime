@@ -41,5 +41,11 @@ public class Process {
         this.temp = temp;
     }
 
+    @Override
+    public String toString() {
+        return "Process{" +
+                "id='" + id + '\'' +
+                '}';
+    }
 }
 

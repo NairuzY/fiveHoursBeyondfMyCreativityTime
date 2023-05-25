@@ -55,6 +55,7 @@ public class Memory {
         Memory.inMemory = inMemory;
     }
     public void addToDisk(String[] values) throws IOException {
+        System.out.println("Swapped in to disk process with id= "+values[0]);
         FileWriter writer = new FileWriter( "src/resources/Disk.txt", true );
         StringBuilder sb = new StringBuilder();
         for(int i=0; i<20; i++){
@@ -68,4 +69,34 @@ public class Memory {
         writer.close();
     }
 
+
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        if(stack[0]==null && stack[20]==null) return "The Memory is empty";
+        if(stack[0]!=null){
+        sb.append("Process_"+stack[0]+" ID="+stack[0]+"\n");
+        sb.append("Process_"+stack[0]+" State:"+stack[1]+"\n");
+        sb.append("Process_"+stack[0]+" PC: "+stack[2]+"\n");
+        sb.append("Process_"+stack[0]+" Min: "+stack[3]+"\n");
+        sb.append("Process_"+stack[0]+" Max: "+stack[4]+"\n");
+
+        for(int i=5; i<20; i++){
+            if(stack[i]!=null)
+                sb.append(stack[i]+ "\n");
+        }}
+        if(stack[20]!=null) {
+
+            sb.append("Process_"+stack[20]+" ID=" + stack[20] + "\n");
+            sb.append("Process_"+stack[20]+" State: " + stack[21] + "\n");
+            sb.append("Process_"+stack[20]+" PC: " + stack[22] + "\n");
+            sb.append("Process_"+stack[20]+" Min: " + stack[23] + "\n");
+            sb.append("Process_"+stack[20]+" Max: " + stack[24] + "\n");
+
+            for(int i=25; i<40; i++){
+                if(stack[i]!=null)
+                    sb.append(stack[i]+ "\n");
+            }
+        }
+        return sb.toString();
+    }
 }
