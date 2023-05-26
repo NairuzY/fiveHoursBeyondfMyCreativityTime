@@ -6,7 +6,7 @@ public class SystemCalls {
         String line;
         String res="";
         while((line=br.readLine())!=null){
-            res = line+"\n";
+            res += line;
         }
         return res;
     }
