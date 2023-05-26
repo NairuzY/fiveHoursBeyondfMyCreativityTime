@@ -111,15 +111,21 @@ public class Scheduler {
         }
     }
    public Boolean runScheduler() throws IOException {
+        System.out.println("Queue size "+readyQueue.size());
         if(runningProcess == null){
-            if(!choose())
+            boolean more = choose();
+            System.out.println(more);
+            if(!more) {
+                System.out.println("I should leave");
                 return true; //handle whole program termination or change this
+            }
         }
         int nextInstruction = runningProcess.getAddress() + 8 + Integer.parseInt(Memory.stack[runningProcess.getAddress() + 2]);
         int max = Integer.parseInt(Memory.stack[runningProcess.getAddress() + 4]);
         if(Memory.stack[nextInstruction] == null || nextInstruction > max) {
             terminate();
-            runScheduler();
+            if(runScheduler())
+                return true;
         }
         execute();
 
