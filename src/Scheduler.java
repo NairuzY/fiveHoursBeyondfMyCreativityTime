@@ -9,7 +9,7 @@ public class Scheduler {
     static Queue<String> blockedOnFile = new LinkedList<>();
     Hashtable<Integer,Integer> programs= new Hashtable<>();
     public static Memory memory = new Memory();
-    int processesCount=0;
+    static int processesCount=0;
     int currentTime = 0;
     static int semFile = 1;
     static int semScreen = 1;
@@ -42,18 +42,17 @@ public class Scheduler {
         readyQueue.remove(runningProcess);
         System.out.println("Scheduler blocked process with id "+runningProcess.getId());
         int iAddress = runningProcess.getAddress() + 8 + Integer.parseInt(Memory.stack[runningProcess.getAddress() + 2])+1;
-        Memory.stack[runningProcess.getAddress() + 2] = iAddress - runningProcess.getAddress() - 8 +"";
+        findInstruction(iAddress);
         runningProcess = null;
         printQueues();
     }
-    public void terminate(){
+    public static void terminate(){
         System.out.println("Scheduler terminated process with id "+runningProcess.getId());
         Memory.stack[runningProcess.getAddress()+1] = "TERMINATED";
         runningProcess = null;
         printQueues();
         processesCount++;
     }
-
     public void storeInMemory(String[] values, Process process) throws IOException {
         int min = memory.allocateMemory();
         process.setAddress(min);
@@ -92,7 +91,6 @@ public class Scheduler {
                 Process p=toMemory("src/resources/Program_"+programs.get(currentTime)+".txt",programs.get(currentTime));
                 readyQueue.add(p);
                 memory.getStack()[p.getAddress()+1]="READY";
-           //     processesCount++;
             }
             if(timeSlice == 0){
                 if(runningProcess!=null) {
@@ -101,7 +99,7 @@ public class Scheduler {
                     runningProcess = null;
                 }
             }
-            if(runScheduler() && processesCount==3 || currentTime ==30)
+            if(runScheduler() && processesCount==3)
                 return;
             timeSlice--;
             currentTime++;
@@ -112,13 +110,7 @@ public class Scheduler {
             if(!choose())
                 return true;
         }
-        int nextInstruction = runningProcess.getAddress() + 8 + Integer.parseInt(Memory.stack[runningProcess.getAddress() + 2]);
-        int max = Integer.parseInt(Memory.stack[runningProcess.getAddress() + 4]);
-        if(Memory.stack[nextInstruction] == null || nextInstruction > max) {
-            terminate();
-            if(runScheduler())
-                return true;
-        }
+
         execute();
         return false;
     }
@@ -136,9 +128,21 @@ public class Scheduler {
         Parser.execute(Memory.stack[iAddress]);
         if(runningProcess!=null && !runningProcess.dontMove) {
             iAddress++;
-            Memory.stack[runningProcess.getAddress() + 2] = iAddress - runningProcess.getAddress() - 8 +"";
+            findInstruction(iAddress);
         }
     }
+
+    private static void findInstruction(int iAddress) {
+        Memory.stack[runningProcess.getAddress() + 2] = iAddress - runningProcess.getAddress() - 8 +"";
+        int nextInstruction = runningProcess.getAddress() + 8 + Integer.parseInt(Memory.stack[runningProcess.getAddress() + 2]);
+        int max = Integer.parseInt(Memory.stack[runningProcess.getAddress() + 4]);
+        if(Memory.stack[nextInstruction] == null || nextInstruction > max) {
+            terminate();
+//                if(runScheduler())
+//                    return true;
+        }
+    }
+
     public void updateDisk(String[] values) throws IOException {
         FileReader oldDisk = new FileReader("src/resources/Disk.txt");
         BufferedReader br = new BufferedReader(oldDisk);

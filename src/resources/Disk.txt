@@ -1,18 +1,19 @@
-2
-BLOCKED
+null
 1
-20
-39
-null
-null
+TERMINATED
+7
+0
+19
+a=5
+b=8
 null
 semWait userInput
 assign a input
 assign b input
 semSignal userInput
-semWait file
-writeFile a b
-semSignal file
+semWait userOutput
+printFromTo a b
+semSignal userOutput
 null
 null
 null
