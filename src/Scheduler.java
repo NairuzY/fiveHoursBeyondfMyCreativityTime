@@ -1,8 +1,6 @@
 import java.io.*;
 import java.util.*;
-
 public class Scheduler {
-
     static Queue<Process> readyQueue = new LinkedList<>();
     static Process runningProcess = null;
     static Hashtable<String,Process> blockedQueue = new Hashtable<>();
@@ -96,7 +94,7 @@ public class Scheduler {
                 memory.getStack()[p.getAddress()+1]="READY";
            //     processesCount++;
             }
-            if(runScheduler() && processesCount==3)
+            if(runScheduler() && processesCount==3 || currentTime ==30)
                 return;
             timeSlice--;
             if(timeSlice == 0){

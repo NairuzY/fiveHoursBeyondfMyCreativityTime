@@ -1,10 +1,11 @@
+null
 1
-BLOCKED
-5
-0
-19
-a=1
-b=6
+TERMINATED
+7
+20
+39
+a=4
+b=7
 null
 semWait userInput
 assign a input

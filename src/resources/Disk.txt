@@ -1,9 +1,10 @@
+null
 1
 TERMINATED
 7
-0
-19
-a=1
+20
+39
+a=4
 b=6
 null
 semWait userInput
