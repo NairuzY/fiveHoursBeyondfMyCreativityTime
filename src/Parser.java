@@ -60,27 +60,34 @@ public class Parser {
 
     }
     public static void semWait(String x){
-        if(x.equals("userInput")){
+        if(x.equals("userInput") && (Scheduler.inputHolder == null || !Scheduler.inputHolder.equals(Scheduler.runningProcess.getId()))){
             if(Scheduler.semInput==0)
                 Scheduler.block(Blocking.Input);
-            else
-                Scheduler.semInput=0;
-        }else if(x.equals("userOutput")){
+            else {
+                Scheduler.semInput = 0;
+                Scheduler.inputHolder = Scheduler.runningProcess.getId();
+            }
+        }else  if(x.equals("userOutput") && (Scheduler.screenHolder == null ||!Scheduler.screenHolder.equals(Scheduler.runningProcess.getId()))){
             if(Scheduler.semScreen==0)
                 Scheduler.block(Blocking.Screen);
-            else
-                Scheduler.semScreen=0;
+            else {
+                Scheduler.semScreen = 0;
+                Scheduler.screenHolder = Scheduler.runningProcess.getId();
+            }
 
-        }else{
+        }else if(x.equals("file") && (Scheduler.fileHolder == null ||!Scheduler.fileHolder.equals(Scheduler.runningProcess.getId()))){
             if(Scheduler.semFile==0)
                 Scheduler.block(Blocking.File);
-            else
-                Scheduler.semFile=0;
+            else {
+                Scheduler.semFile = 0;
+                Scheduler.fileHolder = Scheduler.runningProcess.getId();
+            }
         }
     }
     public static void semSignal(String x){
             if(x.equals("userInput")){
             Scheduler.semInput=1;
+            Scheduler.inputHolder = null;
             if(!Scheduler.blockedOnTakingInput.isEmpty()){
                 String processID=Scheduler.blockedOnTakingInput.poll();
                 Process p=Scheduler.blockedQueue.get(processID);
@@ -89,10 +96,12 @@ public class Parser {
                 }
                 Scheduler.readyQueue.add(p);
                 Scheduler.blockedQueue.remove(processID);
+                Scheduler.inputHolder = processID;
                 Scheduler.semInput=0;
             }
         }else if(x.equals("userOutput")) {
             Scheduler.semScreen=1;
+            Scheduler.screenHolder = null;
             if(!Scheduler.blockedOnScreen.isEmpty()){
                 String processID=Scheduler.blockedOnScreen.poll();
                 Process p=Scheduler.blockedQueue.get(processID);
@@ -101,10 +110,12 @@ public class Parser {
                 }
                 Scheduler.readyQueue.add(p);
                 Scheduler.blockedQueue.remove(processID);
+                Scheduler.screenHolder = processID;
                 Scheduler.semScreen=0;
             }
         } else{
             Scheduler.semFile=1;
+            Scheduler.fileHolder = null;
             if(!Scheduler.blockedOnFile.isEmpty()){
                 String processID=Scheduler.blockedOnFile.poll();
                 Process p=Scheduler.blockedQueue.get(processID);
@@ -113,6 +124,7 @@ public class Parser {
                 }
                 Scheduler.readyQueue.add(p);
                 Scheduler.blockedQueue.remove(processID);
+                Scheduler.fileHolder = processID;
                 Scheduler.semFile=0;
             }
         }

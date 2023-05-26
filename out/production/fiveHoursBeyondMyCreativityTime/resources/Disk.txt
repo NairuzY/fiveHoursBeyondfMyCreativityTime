@@ -1,21 +1,21 @@
-3
+null
+1
 TERMINATED
-9
-20
-39
-a=test
-b=content
-
+7
+0
+19
+a=6
+b=7
 null
 semWait userInput
 assign a input
+assign b input
 semSignal userInput
-semWait file
-assign b readFile a
-semSignal file
 semWait userOutput
-print b
+printFromTo a b
 semSignal userOutput
+null
+null
 null
 null
 null

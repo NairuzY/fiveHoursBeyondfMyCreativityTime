@@ -12,8 +12,11 @@ public class Scheduler {
     static int processesCount=0;
     int currentTime = 0;
     static int semFile = 1;
+    static String fileHolder;
     static int semScreen = 1;
+    static String screenHolder;
     static int semInput = 1;
+    static String inputHolder;
     private int timeSlice = Integer.parseInt(getVal("slice"));
     public boolean choose() throws IOException {
         if(!readyQueue.isEmpty()) {

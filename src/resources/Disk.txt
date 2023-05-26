@@ -1,11 +1,10 @@
-null
 1
 TERMINATED
 7
 0
 19
-a=5
-b=8
+a=3
+b=7
 null
 semWait userInput
 assign a input
