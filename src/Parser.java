@@ -1,7 +1,5 @@
 import java.io.*;
-
 public class Parser {
-
     static boolean dontMove = false;
     public static void execute(String instructionLine) throws IOException {
         int address = Scheduler.runningProcess.getAddress();
@@ -9,7 +7,7 @@ public class Parser {
         switch(instruction[0]){
             case "print": SystemCalls.print(instruction[1]); break;
             case "assign": assign(instruction, address); break;
-            case "writeFile": writeFile(instruction[1], instruction[2], address);
+            case "writeFile": writeFile(instruction[1], instruction[2], address); break;
             case "readFile" : readFile(instruction[1],address); break;
             case "printFromTo" : printFromTo(instruction[1], instruction[2], address); break;
             case "semWait": semWait(instruction[1]); break;
@@ -17,9 +15,6 @@ public class Parser {
             default:
         }
     }
-
-
-
     public static void assign(String[] arr, int address) throws IOException {
         String var;
         if(arr[2].equals("input")) {
@@ -43,9 +38,7 @@ public class Parser {
                 Scheduler.runningProcess.setTemp(null);
                 dontMove = false;
             }
-        }
-        //we'll have to use instruction[3] to find the variable to read from memory
-    }
+        }    }
     private static String readFile(String x, int address) throws IOException {
         String file=SystemCalls.readFromMemory(x,address);
         return SystemCalls.readFile(file);
@@ -56,7 +49,7 @@ public class Parser {
         SystemCalls.writeFile(file, yval);
     }
     public static void printFromTo(String x, String y, int address){
-        int from=Integer.parseInt(SystemCalls.readFromMemory(x,address));//is it okay to be an Integer not int?
+        int from=Integer.parseInt(SystemCalls.readFromMemory(x,address));
         int to = Integer.parseInt(SystemCalls.readFromMemory(y,address));
         for(int i=from+1; i<to; i++){
             SystemCalls.print(i+"");
@@ -83,6 +76,8 @@ public class Parser {
         }
     }
     public static void semSignal(String x){
+        System.out.println("Process "+Scheduler.runningProcess.getId()+" signals "+x);
+        System.out.println("blocked on file size: "+ Scheduler.blockedOnFile.size());
         if(x.equals("userInput")){
             Scheduler.semInput=1;
             if(!Scheduler.blockedOnTakingInput.isEmpty()){

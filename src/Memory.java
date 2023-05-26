@@ -1,13 +1,12 @@
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.HashSet;
-import java.util.Hashtable;
 
 public class Memory {
     
     static String[] stack=new String[40];
     public void setStack(String word,int index) {
-        this.stack[index]=word;
+        stack[index]=word;
     }
     boolean [] used = new boolean[2];
     public String[] getStack() {
@@ -22,6 +21,10 @@ public class Memory {
                 used[i] = true;
                 return i*20;
             }
+        }
+        for(int i=0; i<used.length; i++){
+            if(stack[i*20 + 1].equals("TERMINATED"))
+                return swapOut(i);
         }
         for(int i=0; i<used.length; i++){
             if(stack[i*20 + 1].equals("BLOCKED"))
@@ -51,16 +54,13 @@ public class Memory {
     public static HashSet<String> getInMemory() {
         return inMemory;
     }
-    public static void setInMemory(HashSet<String> inMemory) {
-        Memory.inMemory = inMemory;
-    }
     public void addToDisk(String[] values) throws IOException {
         System.out.println("Swapped in to disk process with id= "+values[0]);
         FileWriter writer = new FileWriter( "src/resources/Disk.txt", true );
         StringBuilder sb = new StringBuilder();
         for(int i=0; i<20; i++){
             if(values[i]!=null)
-                sb.append(values[i]+ "\n");
+                sb.append(values[i]).append("\n");
             else{
                 sb.append("null"+ "\n");
             }
@@ -76,27 +76,27 @@ public class Memory {
         sb.append("=====================================================\n");
         if(stack[0]==null && stack[20]==null) return "The Memory is empty";
         if(stack[0]!=null){
-        sb.append("Process_"+stack[0]+" ID="+stack[0]+"\n");
-        sb.append("Process_"+stack[0]+" State:"+stack[1]+"\n");
-        sb.append("Process_"+stack[0]+" PC: "+stack[2]+"\n");
-        sb.append("Process_"+stack[0]+" Min: "+stack[3]+"\n");
-        sb.append("Process_"+stack[0]+" Max: "+stack[4]+"\n");
+        sb.append("Process_").append(stack[0]).append(" ID=").append(stack[0]).append("\n");
+        sb.append("Process_").append(stack[0]).append(" State:").append(stack[1]).append("\n");
+        sb.append("Process_").append(stack[0]).append(" PC: ").append(stack[2]).append("\n");
+        sb.append("Process_").append(stack[0]).append(" Min: ").append(stack[3]).append("\n");
+        sb.append("Process_").append(stack[0]).append(" Max: ").append(stack[4]).append("\n");
 
         for(int i=5; i<20; i++){
             if(stack[i]!=null)
-                sb.append(stack[i]+ "\n");
+                sb.append(stack[i]).append("\n");
         }}
         if(stack[20]!=null) {
 
-            sb.append("Process_"+stack[20]+" ID=" + stack[20] + "\n");
-            sb.append("Process_"+stack[20]+" State: " + stack[21] + "\n");
-            sb.append("Process_"+stack[20]+" PC: " + stack[22] + "\n");
-            sb.append("Process_"+stack[20]+" Min: " + stack[23] + "\n");
-            sb.append("Process_"+stack[20]+" Max: " + stack[24] + "\n");
+            sb.append("Process_").append(stack[20]).append(" ID=").append(stack[20]).append("\n");
+            sb.append("Process_").append(stack[20]).append(" State: ").append(stack[21]).append("\n");
+            sb.append("Process_").append(stack[20]).append(" PC: ").append(stack[22]).append("\n");
+            sb.append("Process_").append(stack[20]).append(" Min: ").append(stack[23]).append("\n");
+            sb.append("Process_").append(stack[20]).append(" Max: ").append(stack[24]).append("\n");
 
             for(int i=25; i<40; i++){
                 if(stack[i]!=null)
-                    sb.append(stack[i]+ "\n");
+                    sb.append(stack[i]).append("\n");
             }
         }
         sb.append("=====================================================\n");

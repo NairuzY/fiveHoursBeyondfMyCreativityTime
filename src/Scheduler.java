@@ -26,6 +26,7 @@ public class Scheduler {
                 storeInMemory(values,runningProcess);
             }
             Memory.stack[runningProcess.getAddress() + 1] = "RUNNING";
+            System.out.println("Scheduler chose process "+runningProcess.getId());
             printQueues();
             return true;
         }
@@ -49,8 +50,10 @@ public class Scheduler {
     }
     public void terminate(){
         System.out.println("Scheduler terminated process with id "+runningProcess.getId());
+        Memory.stack[runningProcess.getAddress()+1] = "TERMINATED";
         runningProcess = null;
         printQueues();
+        processesCount++;
     }
 
     public void storeInMemory(String[] values, Process process) throws IOException {
@@ -79,7 +82,6 @@ public class Scheduler {
         }
         storeInMemory(values, process);
         return process;
-
     }
     public void cycle() throws IOException {
         programs.put(Integer.parseInt(getVal("program1")),1);
@@ -91,14 +93,12 @@ public class Scheduler {
                 Process p=toMemory("src/resources/Program_"+programs.get(currentTime)+".txt",programs.get(currentTime));
                 readyQueue.add(p);
                 memory.getStack()[p.getAddress()+1]="READY";
-                processesCount++;
+           //     processesCount++;
             }
-            if(runScheduler())
+            if(runScheduler() && processesCount==3)
                 return;
-//            Boolean finished=runScheduler();
             timeSlice--;
             if(timeSlice == 0){
-                //running process b2et null
                if(runningProcess!=null) {
                    memory.getStack()[runningProcess.getAddress() + 1] = "READY";
                    readyQueue.add(runningProcess);
@@ -106,19 +106,12 @@ public class Scheduler {
                }
             }
             currentTime++;
-//            if(finished && processesCount==3)
-//                break;
         }
     }
    public Boolean runScheduler() throws IOException {
-        System.out.println("Queue size "+readyQueue.size());
         if(runningProcess == null){
-            boolean more = choose();
-            System.out.println(more);
-            if(!more) {
-                System.out.println("I should leave");
-                return true; //handle whole program termination or change this
-            }
+            if(!choose())
+                return true;
         }
         int nextInstruction = runningProcess.getAddress() + 8 + Integer.parseInt(Memory.stack[runningProcess.getAddress() + 2]);
         int max = Integer.parseInt(Memory.stack[runningProcess.getAddress() + 4]);
@@ -128,7 +121,6 @@ public class Scheduler {
                 return true;
         }
         execute();
-
         return false;
     }
     private static void printQueues() {
@@ -149,7 +141,6 @@ public class Scheduler {
         }
     }
     public void updateDisk(String[] values) throws IOException {
-        System.out.println("Ana fi el awel");
         FileReader oldDisk = new FileReader("src/resources/Disk.txt");
         BufferedReader br = new BufferedReader(oldDisk);
         StringBuilder newDisk = new StringBuilder();
@@ -168,8 +159,7 @@ public class Scheduler {
         FileWriter Disk = new FileWriter(itsANewFile);
         Disk.write(newDisk.toString());
         Disk.close();
-        System.out.println("Ana fi el a5er");
-    }
+     }
     public String[] retrieveFromDisk(String id) throws IOException {
         BufferedReader br = new BufferedReader(new FileReader("src/resources/Disk.txt"));
         String line;
@@ -188,7 +178,7 @@ public class Scheduler {
             }
         }
         return null;
-    } //while uploading to disk, make sure to upload 20 values even if it'll be null
+    }
     public static String getVal(String key) {
         String keyval = null;
         File file = new File("src/resources/os.config");
@@ -203,21 +193,13 @@ public class Scheduler {
         return keyval;
         }
         public static void main(String[] args) throws IOException {
-        //pls clear disk.txt file before running
            FileWriter Disk = new FileWriter("src/resources/Disk.txt");
               Disk.write("");
                 Disk.close();
         Scheduler scheduler = new Scheduler();
         scheduler.cycle();
         }
-
     }
-
-//    public Scheduler(int timeSlice) {
-//        this.readyQueue = new LinkedList<>();
-//        this.blockedQueue = new LinkedList<>();
-//        this.timeSlice = timeSlice;
-//    }
 
 
 
