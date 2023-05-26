@@ -5,7 +5,7 @@ public class Parser {
         int address = Scheduler.runningProcess.getAddress();
         String[] instruction = instructionLine.split(" ");
         switch(instruction[0]){
-            case "print": SystemCalls.print(instruction[1]); break;
+            case "print": print(instruction[1], address); break;
             case "assign": assign(instruction, address); break;
             case "writeFile": writeFile(instruction[1], instruction[2], address); break;
             case "readFile" : readFile(instruction[1],address); break;
@@ -14,6 +14,10 @@ public class Parser {
             case "semSignal" : semSignal(instruction[1]); break;
             default:
         }
+    }
+    public static void print(String var, int address){
+        String x = SystemCalls.readFromMemory(var,address);
+        SystemCalls.print(x);
     }
     public static void assign(String[] arr, int address) throws IOException {
         String var;
@@ -76,9 +80,7 @@ public class Parser {
         }
     }
     public static void semSignal(String x){
-        System.out.println("Process "+Scheduler.runningProcess.getId()+" signals "+x);
-        System.out.println("blocked on file size: "+ Scheduler.blockedOnFile.size());
-        if(x.equals("userInput")){
+            if(x.equals("userInput")){
             Scheduler.semInput=1;
             if(!Scheduler.blockedOnTakingInput.isEmpty()){
                 String processID=Scheduler.blockedOnTakingInput.poll();

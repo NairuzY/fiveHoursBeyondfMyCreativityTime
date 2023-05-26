@@ -88,6 +88,7 @@ public class Scheduler {
         programs.put(Integer.parseInt(getVal("program2")),2);
         programs.put(Integer.parseInt(getVal("program3")),3);
         while(true){
+            System.out.println();
             System.out.println("Memory in start of cycle "+currentTime + " is "+ "\n"+memory.toString());
             if(programs.get(currentTime)!=null){
                 Process p=toMemory("src/resources/Program_"+programs.get(currentTime)+".txt",programs.get(currentTime));
