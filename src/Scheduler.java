@@ -94,16 +94,16 @@ public class Scheduler {
                 memory.getStack()[p.getAddress()+1]="READY";
            //     processesCount++;
             }
+            if(timeSlice == 0){
+                if(runningProcess!=null) {
+                    memory.getStack()[runningProcess.getAddress() + 1] = "READY";
+                    readyQueue.add(runningProcess);
+                    runningProcess = null;
+                }
+            }
             if(runScheduler() && processesCount==3 || currentTime ==30)
                 return;
             timeSlice--;
-            if(timeSlice == 0){
-               if(runningProcess!=null) {
-                   memory.getStack()[runningProcess.getAddress() + 1] = "READY";
-                   readyQueue.add(runningProcess);
-                   runningProcess = null;
-               }
-            }
             currentTime++;
         }
     }
