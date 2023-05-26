@@ -85,24 +85,27 @@ public class Parser {
     public static void semSignal(String x){
         if(x.equals("userInput")){
             Scheduler.semInput=1;
-            while(!Scheduler.blockedOnTakingInput.isEmpty()){
+            if(!Scheduler.blockedOnTakingInput.isEmpty()){
                 String processID=Scheduler.blockedOnTakingInput.poll();
                 Scheduler.readyQueue.add(Scheduler.blockedQueue.get(processID));
                 Scheduler.blockedQueue.remove(processID);
+                Scheduler.semInput=0;
             }
         }else if(x.equals("userOutput")) {
             Scheduler.semScreen=1;
-            while(!Scheduler.blockedOnScreen.isEmpty()){
+            if(!Scheduler.blockedOnScreen.isEmpty()){
                 String processID=Scheduler.blockedOnScreen.poll();
                 Scheduler.readyQueue.add(Scheduler.blockedQueue.get(processID));
                 Scheduler.blockedQueue.remove(processID);
+                Scheduler.semScreen=0;
             }
         } else{
             Scheduler.semFile=1;
-            while(!Scheduler.blockedOnFile.isEmpty()){
+            if(!Scheduler.blockedOnFile.isEmpty()){
                 String processID=Scheduler.blockedOnFile.poll();
                 Scheduler.readyQueue.add(Scheduler.blockedQueue.get(processID));
                 Scheduler.blockedQueue.remove(processID);
+                Scheduler.semFile=0;
             }
         }
     }

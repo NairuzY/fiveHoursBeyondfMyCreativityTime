@@ -21,27 +21,29 @@ public class Scheduler {
         if(!readyQueue.isEmpty()) {
             runningProcess = readyQueue.poll();
             timeSlice = Integer.parseInt(getVal("slice"));
-            if(!memory.getInMemory().contains(runningProcess.getId())){//3amalet null pointerexception
+            if(!Memory.getInMemory().contains(runningProcess.getId())){
                 String[] values = retrieveFromDisk(runningProcess.getId());
                 storeInMemory(values,runningProcess);
             }
-            memory.stack[runningProcess.getAddress() + 1] = "RUNNING";
+            Memory.stack[runningProcess.getAddress() + 1] = "RUNNING";
             printQueues();
             return true;
         }
         return false;
     }
     public static void block(Blocking reason){
-        memory.stack[runningProcess.getAddress() + 1] = "BLOCKED";
-        Scheduler.blockedQueue.put(memory.stack[runningProcess.getAddress()],Scheduler.runningProcess);
+        Memory.stack[runningProcess.getAddress() + 1] = "BLOCKED";
+        Scheduler.blockedQueue.put(Memory.stack[runningProcess.getAddress()],Scheduler.runningProcess);
         if(reason == Blocking.Input)
-            Scheduler.blockedOnTakingInput.add(memory.stack[runningProcess.getAddress()]);
+            Scheduler.blockedOnTakingInput.add(Memory.stack[runningProcess.getAddress()]);
         else if(reason == Blocking.File)
-            Scheduler.blockedOnFile.add(memory.stack[runningProcess.getAddress()]);
+            Scheduler.blockedOnFile.add(Memory.stack[runningProcess.getAddress()]);
         else
-            Scheduler.blockedOnScreen.add(memory.stack[runningProcess.getAddress()]);
+            Scheduler.blockedOnScreen.add(Memory.stack[runningProcess.getAddress()]);
         readyQueue.remove(runningProcess);
         System.out.println("Scheduler blocked process with id "+runningProcess.getId());
+        int iAddress = runningProcess.getAddress() + 8 + Integer.parseInt(Memory.stack[runningProcess.getAddress() + 2])+1;
+        Memory.stack[runningProcess.getAddress() + 2] = iAddress - runningProcess.getAddress() - 8 +"";
         runningProcess = null;
         printQueues();
     }
@@ -53,13 +55,12 @@ public class Scheduler {
 
     public void storeInMemory(String[] values, Process process) throws IOException {
         int min = memory.allocateMemory();
-        System.out.println(min+"Toooooooooooooooooz");
         process.setAddress(min);
         int max = min+19;
-        System.arraycopy(values, 0, memory.stack, min, values.length);
+        System.arraycopy(values, 0, Memory.stack, min, values.length);
         memory.setStack(""+min,min+3);
         memory.setStack(""+max,min+4);
-        memory.getInMemory().add(memory.getStack()[min]+"");
+        Memory.getInMemory().add(memory.getStack()[min]+"");
 
     }
     public Process toMemory(String fileName,int processId) throws IOException {
@@ -80,7 +81,6 @@ public class Scheduler {
         return process;
 
     }
-
     public void cycle() throws IOException {
         programs.put(Integer.parseInt(getVal("program1")),1);
         programs.put(Integer.parseInt(getVal("program2")),2);
@@ -93,8 +93,9 @@ public class Scheduler {
                 memory.getStack()[p.getAddress()+1]="READY";
                 processesCount++;
             }
-            Boolean finished=runScheduler();
-
+            if(runScheduler())
+                return;
+//            Boolean finished=runScheduler();
             timeSlice--;
             if(timeSlice == 0){
                 //running process b2et null
@@ -105,9 +106,8 @@ public class Scheduler {
                }
             }
             currentTime++;
-            if(finished && processesCount==3)
-                break;
-
+//            if(finished && processesCount==3)
+//                break;
         }
     }
    public Boolean runScheduler() throws IOException {
@@ -115,74 +115,59 @@ public class Scheduler {
             if(!choose())
                 return true; //handle whole program termination or change this
         }
+        int nextInstruction = runningProcess.getAddress() + 8 + Integer.parseInt(Memory.stack[runningProcess.getAddress() + 2]);
+        int max = Integer.parseInt(Memory.stack[runningProcess.getAddress() + 4]);
+        if(Memory.stack[nextInstruction] == null || nextInstruction > max) {
+            terminate();
+            runScheduler();
+        }
+        execute();
 
-        int nextInstruction = runningProcess.getAddress() + 8 + Integer.parseInt(memory.stack[runningProcess.getAddress() + 2]);
-        int max = Integer.parseInt(memory.stack[runningProcess.getAddress() + 4]);
-            if(memory.stack[nextInstruction] == null || nextInstruction > max) { //keda one cycle will be wasted
-                terminate();
-                runScheduler();
-            }
-            execute();
-
-return false;
-
-            // Check if the process is blocked or finished
-//            if (currentProcess.getInfo().getState() == ProcessState.BLOCKED) {
-//                blockedQueue.add(currentProcess);
-//            } else if (currentProcess.getInfo().getState() != ProcessState.TERMINATED) {
-//                readyQueue.add(currentProcess);
-//            }
+        return false;
     }
     private static void printQueues() {
         System.out.println("Ready Queue: " + readyQueue);
         System.out.println("Blocked Queue: "+blockedQueue);
+        System.out.println("Blocked on Taking Input Queue: "+ blockedOnTakingInput);
+        System.out.println("Blocked on Accessing Files: "+ blockedOnFile);
+        System.out.println("Blocked on Accessing Screen: "+ blockedOnScreen);
     }
 
-    public void addProcess(Process process) {
-        readyQueue.add(process);
-    }
     private void execute() throws IOException {
-        int iAddress = runningProcess.getAddress() + 8 + Integer.parseInt(memory.stack[runningProcess.getAddress() + 2]);
-        System.out.println("Executing instruction: " + memory.stack[iAddress] + " for process: " + runningProcess.getId());
-        Parser.execute(memory.stack[iAddress]);
-        if(!Parser.dontMove) {
+        int iAddress = runningProcess.getAddress() + 8 + Integer.parseInt(Memory.stack[runningProcess.getAddress() + 2]);
+        System.out.println("Executing instruction: " + Memory.stack[iAddress] + " for process: " + runningProcess.getId());
+        Parser.execute(Memory.stack[iAddress]);
+        if(!Parser.dontMove && runningProcess!=null) {
             iAddress++;
-            memory.stack[runningProcess.getAddress() + 2] = iAddress - runningProcess.getAddress() - 8 +"";
+            Memory.stack[runningProcess.getAddress() + 2] = iAddress - runningProcess.getAddress() - 8 +"";
         }
     }
     public void updateDisk(String[] values) throws IOException {
+        System.out.println("Ana fi el awel");
         FileReader oldDisk = new FileReader("src/resources/Disk.txt");
         BufferedReader br = new BufferedReader(oldDisk);
         StringBuilder newDisk = new StringBuilder();
         String curLine = br.readLine();
-        boolean flag=false;
-        int i=0;
-        while (i<values.length){
-            while (curLine != null) {
-                if(i<values.length){
-                if(curLine.equals(values[i])){
-                    i++;
-                    flag=true;
+        while(curLine!=null){
+            if(curLine.equals(values[0])){
+                for(int i=1; i<20; i++){
+                    br.readLine();
                 }
-                else{
-                    newDisk.append(curLine).append("\n");
-                    }
-                }
-                curLine = br.readLine();
             }
+            else
+                newDisk.append(curLine).append("\n");
+            curLine = br.readLine();
         }
-//        while (curLine != null) {
-//             newDisk.append(curLine).append("\n");
-//             curLine = br.readLine();
-//         }
-        FileWriter Disk = new FileWriter("src/resources/Disk.txt");
+        File itsANewFile = new File("src/resources/Disk.txt");
+        FileWriter Disk = new FileWriter(itsANewFile);
         Disk.write(newDisk.toString());
         Disk.close();
+        System.out.println("Ana fi el a5er");
     }
     public String[] retrieveFromDisk(String id) throws IOException {
         BufferedReader br = new BufferedReader(new FileReader("src/resources/Disk.txt"));
         String line;
-        String[] values = new String[20];
+        String[] values= new String[20];
         values[0] = id;
         while((line = br.readLine())!=null){
             if(line.equals(id)){
@@ -192,6 +177,7 @@ return false;
                 }
                 System.out.println("Swapped out of disk process with id= "+values[0]);
                 updateDisk(values);
+                values[1] = "READY";
                 return values;
             }
         }
