@@ -1,6 +1,6 @@
 1
-TERMINATED
-7
+BLOCKED
+5
 0
 19
 a=1

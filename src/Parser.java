@@ -1,6 +1,5 @@
 import java.io.*;
 public class Parser {
-    static boolean dontMove = false;
     public static void execute(String instructionLine) throws IOException {
         int address = Scheduler.runningProcess.getAddress();
         String[] instruction = instructionLine.split(" ");
@@ -25,22 +24,22 @@ public class Parser {
             if(Scheduler.runningProcess.getTemp() == null) {
                 var = SystemCalls.input();
                 Scheduler.runningProcess.setTemp(var);
-                dontMove = true;
+                Scheduler.runningProcess.dontMove = true;
             }else{
                 SystemCalls.writeToMemory(arr[1],Scheduler.runningProcess.getTemp(),address);
                 Scheduler.runningProcess.setTemp(null);
-                dontMove = false;
+                Scheduler.runningProcess.dontMove = false;
             }
         }
         else if(arr[2].equals("readFile")) {
             if (Scheduler.runningProcess.getTemp() == null) {
                 String file=readFile(arr[3],address);
                 Scheduler.runningProcess.setTemp(file);
-                dontMove = true;
+                Scheduler.runningProcess.dontMove = true;
             }else {
                 SystemCalls.writeToMemory(arr[1],Scheduler.runningProcess.getTemp(),address);
                 Scheduler.runningProcess.setTemp(null);
-                dontMove = false;
+                Scheduler.runningProcess.dontMove = false;
             }
         }    }
     private static String readFile(String x, int address) throws IOException {

@@ -136,7 +136,7 @@ public class Scheduler {
         int iAddress = runningProcess.getAddress() + 8 + Integer.parseInt(Memory.stack[runningProcess.getAddress() + 2]);
         System.out.println("Executing instruction: " + Memory.stack[iAddress] + " for process: " + runningProcess.getId());
         Parser.execute(Memory.stack[iAddress]);
-        if(!Parser.dontMove && runningProcess!=null) {
+        if(runningProcess!=null && !runningProcess.dontMove) {
             iAddress++;
             Memory.stack[runningProcess.getAddress() + 2] = iAddress - runningProcess.getAddress() - 8 +"";
         }
