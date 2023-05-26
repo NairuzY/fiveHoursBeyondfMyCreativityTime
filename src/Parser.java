@@ -83,7 +83,11 @@ public class Parser {
             Scheduler.semInput=1;
             if(!Scheduler.blockedOnTakingInput.isEmpty()){
                 String processID=Scheduler.blockedOnTakingInput.poll();
-                Scheduler.readyQueue.add(Scheduler.blockedQueue.get(processID));
+                Process p=Scheduler.blockedQueue.get(processID);
+                if(Memory.getInMemory().contains(processID)){
+                    Memory.stack[p.getAddress()+1]="READY";
+                }
+                Scheduler.readyQueue.add(p);
                 Scheduler.blockedQueue.remove(processID);
                 Scheduler.semInput=0;
             }
@@ -91,7 +95,11 @@ public class Parser {
             Scheduler.semScreen=1;
             if(!Scheduler.blockedOnScreen.isEmpty()){
                 String processID=Scheduler.blockedOnScreen.poll();
-                Scheduler.readyQueue.add(Scheduler.blockedQueue.get(processID));
+                Process p=Scheduler.blockedQueue.get(processID);
+                if(Memory.getInMemory().contains(processID)){
+                    Memory.stack[p.getAddress()+1]="READY";
+                }
+                Scheduler.readyQueue.add(p);
                 Scheduler.blockedQueue.remove(processID);
                 Scheduler.semScreen=0;
             }
@@ -99,7 +107,11 @@ public class Parser {
             Scheduler.semFile=1;
             if(!Scheduler.blockedOnFile.isEmpty()){
                 String processID=Scheduler.blockedOnFile.poll();
-                Scheduler.readyQueue.add(Scheduler.blockedQueue.get(processID));
+                Process p=Scheduler.blockedQueue.get(processID);
+                if(Memory.getInMemory().contains(processID)){
+                    Memory.stack[p.getAddress()+1]="READY";
+                }
+                Scheduler.readyQueue.add(p);
                 Scheduler.blockedQueue.remove(processID);
                 Scheduler.semFile=0;
             }

@@ -173,6 +173,7 @@ public class Scheduler {
                 System.out.println("Swapped out of disk process with id= "+values[0]);
                 updateDisk(values);
                 values[1] = "READY";
+
                 return values;
             }
         }
